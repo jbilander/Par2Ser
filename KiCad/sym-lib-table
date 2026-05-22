@@ -1,0 +1,3 @@
+(sym_lib_table
+  (lib (name Par2Ser)(type Legacy)(uri ${KIPRJMOD}/Par2Ser.lib)(options "")(descr ""))
+)
