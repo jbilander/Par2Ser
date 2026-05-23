@@ -41,10 +41,10 @@ Text GLabel 6400 1650 1    50   Input ~ 0
 GND
 Text GLabel 5000 2850 0    50   Input ~ 0
 GND
-Text GLabel 6700 2650 2    50   BiDi ~ 0
-BUSY
 Text GLabel 6700 2850 2    50   BiDi ~ 0
-POUT
+BUSY_B9
+Text GLabel 6700 2750 2    50   BiDi ~ 0
+POUT_B10
 $Comp
 L power:PWR_FLAG #FLG0101
 U 1 1 5EB341E8
@@ -95,33 +95,27 @@ Wire Wire Line
 	4100 2400 4100 2500
 Text GLabel 4100 2450 0    50   Input ~ 0
 GND
-Text GLabel 6700 2750 2    50   BiDi ~ 0
-SELECT
+Text GLabel 6700 2650 2    50   BiDi ~ 0
+SELECT_B11
 $Comp
 L Device:C_Small C6
 U 1 1 5EB53531
-P 14300 3950
-F 0 "C6" H 14150 3950 50  0000 C CNN
-F 1 "0.1uF" H 14150 3850 50  0000 C CNN
-F 2 "Capacitor_SMD:C_0805_2012Metric_Pad1.18x1.45mm_HandSolder" H 14300 3950 50  0001 C CNN
-F 3 "~" H 14300 3950 50  0001 C CNN
-	1    14300 3950
+P 8400 1500
+F 0 "C6" H 8250 1500 50  0000 C CNN
+F 1 "0.1uF" H 8250 1400 50  0000 C CNN
+F 2 "Capacitor_SMD:C_0805_2012Metric_Pad1.18x1.45mm_HandSolder" H 8400 1500 50  0001 C CNN
+F 3 "~" H 8400 1500 50  0001 C CNN
+	1    8400 1500
 	1    0    0    -1  
 $EndComp
 NoConn ~ 3750 3300
 NoConn ~ 3750 3500
 NoConn ~ 3750 5100
-Text GLabel 13800 4500 2    50   Output ~ 0
-SCK
-Text GLabel 12450 4500 0    50   Input ~ 0
-MISO
-Text GLabel 12450 4400 0    50   Output ~ 0
-MOSI
 Text GLabel 3800 2450 0    50   Input ~ 0
 VCC
 NoConn ~ 3750 3100
 Text GLabel 1800 2200 0    50   Input ~ 0
-VCC
+3V3
 $Comp
 L Device:LED D2
 U 1 1 5EBAFFCE
@@ -155,38 +149,27 @@ F 3 "~" H 2000 2300 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L Device:R_Small R5
-U 1 1 5EB9C4B4
-P 2000 3900
-F 0 "R5" V 2100 3900 50  0000 C CNN
-F 1 "4k7" V 1900 3850 50  0000 L CNN
-F 2 "Resistor_SMD:R_1206_3216Metric_Pad1.30x1.75mm_HandSolder" H 2000 3900 50  0001 C CNN
-F 3 "~" H 2000 3900 50  0001 C CNN
-	1    2000 3900
-	0    -1   -1   0   
-$EndComp
-$Comp
 L Device:R_Small R1
 U 1 1 5EB9CA00
-P 2500 4300
-F 0 "R1" H 2400 4300 50  0000 C CNN
-F 1 "330" H 2650 4300 50  0000 C CNN
-F 2 "Resistor_SMD:R_1206_3216Metric_Pad1.30x1.75mm_HandSolder" H 2500 4300 50  0001 C CNN
-F 3 "~" H 2500 4300 50  0001 C CNN
-	1    2500 4300
+P 2250 4050
+F 0 "R1" H 2150 4050 50  0000 C CNN
+F 1 "330" H 2400 4050 50  0000 C CNN
+F 2 "Resistor_SMD:R_1206_3216Metric_Pad1.30x1.75mm_HandSolder" H 2250 4050 50  0001 C CNN
+F 3 "~" H 2250 4050 50  0001 C CNN
+	1    2250 4050
 	1    0    0    -1  
 $EndComp
-Text GLabel 17000 3550 0    50   Input ~ 0
+Text GLabel 12800 2400 0    50   Input ~ 0
 GND
 $Comp
 L Device:LED D1
 U 1 1 5EBA7223
-P 2500 4650
-F 0 "D1" V 2500 4850 50  0000 R CNN
-F 1 "Activity LED" V 2600 5200 50  0000 R CNN
-F 2 "LED_THT:LED_Rectangular_W5.0mm_H2.0mm" H 2500 4650 50  0001 C CNN
-F 3 "~" H 2500 4650 50  0001 C CNN
-	1    2500 4650
+P 2250 4400
+F 0 "D1" V 2250 4600 50  0000 R CNN
+F 1 "Activity LED" V 2350 4950 50  0000 R CNN
+F 2 "LED_THT:LED_Rectangular_W5.0mm_H2.0mm" H 2250 4400 50  0001 C CNN
+F 3 "~" H 2250 4400 50  0001 C CNN
+	1    2250 4400
 	0    -1   -1   0   
 $EndComp
 Text Notes 2100 3350 0    50   ~ 0
@@ -240,375 +223,212 @@ F 3 " ~" H 4050 4200 50  0001 C CNN
 	1    4050 4200
 	1    0    0    -1  
 $EndComp
-Text GLabel 18700 4050 2    50   Output ~ 0
+Text GLabel 14500 2900 2    50   Output ~ 0
 3V3
-Text GLabel 6500 5650 3    50   Input ~ 0
-MOSI
-Text GLabel 2400 3500 0    50   Input ~ 0
-VCC
 Wire Wire Line
-	2500 4100 2500 4200
+	2250 3850 2250 3950
 Wire Wire Line
-	2500 4400 2500 4500
+	2250 4150 2250 4250
 Wire Notes Line
 	2950 3250 1550 3250
-Text GLabel 12450 4300 0    50   Output ~ 0
-SS
 $Comp
 L Device:R_Small R6
 U 1 1 610DADE6
-P 6150 5450
-F 0 "R6" H 6050 5450 50  0000 C CNN
-F 1 "1k 0805" V 6250 5250 50  0000 L CNN
-F 2 "Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder" H 6150 5450 50  0001 C CNN
-F 3 "~" H 6150 5450 50  0001 C CNN
-	1    6150 5450
+P 6850 5450
+F 0 "R6" H 6950 5450 50  0000 C CNN
+F 1 "330" H 6650 5450 50  0000 L CNN
+F 2 "Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder" H 6850 5450 50  0001 C CNN
+F 3 "~" H 6850 5450 50  0001 C CNN
+	1    6850 5450
 	-1   0    0    1   
 $EndComp
-Text GLabel 6400 5650 3    50   Input ~ 0
-SS
-Text GLabel 14300 4050 3    50   Input ~ 0
+Text GLabel 8400 1600 3    50   Input ~ 0
 GND
 $Comp
 L Device:C_Small C7
 U 1 1 611D1D5F
-P 16750 4850
-F 0 "C7" H 16900 4850 50  0000 C CNN
-F 1 "0.1uF" H 16550 4850 50  0000 C CNN
-F 2 "Capacitor_SMD:C_0603_1608Metric_Pad1.08x0.95mm_HandSolder" H 16750 4850 50  0001 C CNN
-F 3 "~" H 16750 4850 50  0001 C CNN
-	1    16750 4850
+P 12550 3700
+F 0 "C7" H 12700 3700 50  0000 C CNN
+F 1 "0.1uF" H 12350 3700 50  0000 C CNN
+F 2 "Capacitor_SMD:C_0603_1608Metric_Pad1.08x0.95mm_HandSolder" H 12550 3700 50  0001 C CNN
+F 3 "~" H 12550 3700 50  0001 C CNN
+	1    12550 3700
 	-1   0    0    1   
 $EndComp
-Text GLabel 6600 5650 3    50   Input ~ 0
-MISO
 $Comp
 L Device:C_Small C3
 U 1 1 612089E2
-P 18700 3500
-F 0 "C3" H 18600 3400 50  0000 C CNN
-F 1 "0.1uF" H 18550 3600 50  0000 C CNN
-F 2 "Capacitor_SMD:C_0805_2012Metric_Pad1.18x1.45mm_HandSolder" H 18700 3500 50  0001 C CNN
-F 3 "~" H 18700 3500 50  0001 C CNN
-	1    18700 3500
+P 14500 2350
+F 0 "C3" H 14400 2250 50  0000 C CNN
+F 1 "0.1uF" H 14350 2450 50  0000 C CNN
+F 2 "Capacitor_SMD:C_0805_2012Metric_Pad1.18x1.45mm_HandSolder" H 14500 2350 50  0001 C CNN
+F 3 "~" H 14500 2350 50  0001 C CNN
+	1    14500 2350
 	-1   0    0    1   
-$EndComp
-$Comp
-L Device:R_Network08 RN1
-U 1 1 670EBA04
-P 5350 5450
-F 0 "RN1" H 5738 5496 50  0000 L CNN
-F 1 "10k" H 5738 5405 50  0000 L CNN
-F 2 "Resistor_THT:R_Array_SIP9" V 5825 5450 50  0001 C CNN
-F 3 "http://www.vishay.com/docs/31509/csc.pdf" H 5350 5450 50  0001 C CNN
-	1    5350 5450
-	1    0    0    -1  
 $EndComp
 Text GLabel 3750 5400 0    50   Output ~ 0
 STROBE
-Text GLabel 5650 5650 3    50   BiDi ~ 0
-D0
-Text GLabel 5900 4250 3    50   Input ~ 0
+Text GLabel 6850 5550 3    50   Input ~ 0
 STROBE
-Text GLabel 5550 5650 3    50   BiDi ~ 0
-D1
-Text GLabel 5450 5650 3    50   BiDi ~ 0
-D2
-Text GLabel 5350 5650 3    50   BiDi ~ 0
-D3
-Text GLabel 5250 5650 3    50   BiDi ~ 0
-D4
-Text GLabel 5150 5650 3    50   BiDi ~ 0
-D5
-Text GLabel 5050 5650 3    50   BiDi ~ 0
-D6
-Text GLabel 4950 5650 3    50   BiDi ~ 0
-D7
-Text GLabel 6700 5650 3    50   Input ~ 0
-ACK
-Text GLabel 7000 5650 3    50   BiDi ~ 0
-BUSY
-Text GLabel 6900 5650 3    50   BiDi ~ 0
-POUT
-Text GLabel 7100 5650 3    50   BiDi ~ 0
-SELECT
-$Comp
-L Device:R_Network08 RN2
-U 1 1 6716E0A0
-P 6800 5450
-F 0 "RN2" H 7188 5496 50  0000 L CNN
-F 1 "10k" H 7188 5405 50  0000 L CNN
-F 2 "Resistor_THT:R_Array_SIP9" V 7275 5450 50  0001 C CNN
-F 3 "http://www.vishay.com/docs/31509/csc.pdf" H 6800 5450 50  0001 C CNN
-	1    6800 5450
-	1    0    0    -1  
-$EndComp
-Text GLabel 12450 3100 0    50   Output ~ 0
-TX0
-Text GLabel 12450 3200 0    50   Input ~ 0
-RX0
-Text GLabel 12500 2150 3    50   Input ~ 0
-TX0
-Text GLabel 12600 2150 3    50   Output ~ 0
-RX0
 Text GLabel 2750 6350 0    50   Input ~ 0
 GND
-Text GLabel 14700 3550 0    50   Input ~ 0
+Text GLabel 8800 1100 0    50   Input ~ 0
 RESET
-$Comp
-L Par2Ser:SC16IS750IBS,128 U3
-U 1 1 671C3779
-P 15500 3800
-F 0 "U3" H 15500 3800 50  0000 L CNN
-F 1 "SC16IS750IBS,128" H 15150 4200 50  0000 L CNN
-F 2 "Par2Ser:HVQFN-24-1EP_4x4mm_P0.5mm_EP2.6x2.6mm_HandSolder" H 16150 4750 50  0001 L CNN
-F 3 "http://www.nxp.com/docs/en/data-sheet/SC16IS740_750_760.pdf" H 16150 4650 50  0001 L CNN
-	1    15500 3800
-	1    0    0    -1  
-$EndComp
-Text GLabel 14300 3750 1    50   Input ~ 0
+Text GLabel 8400 1300 1    50   Input ~ 0
 3V3
-Text GLabel 15300 4750 3    50   Output ~ 0
-MISO
-Text GLabel 15200 4750 3    50   Input ~ 0
-MOSI
-Text GLabel 14700 4050 0    50   Input ~ 0
-SS
-Text GLabel 15400 4750 3    50   Input ~ 0
-SCK
-Text GLabel 15500 4750 3    50   Input ~ 0
+Text GLabel 8150 2250 3    50   Input ~ 0
 GND
-Text GLabel 16300 3750 2    50   Input ~ 0
+Text GLabel 8650 1900 2    50   Input ~ 0
 GND
-Text GLabel 14700 3650 0    50   Input ~ 0
-7M
-NoConn ~ 14700 3750
-Text GLabel 12450 3600 0    50   Input ~ 0
+Text GLabel 8000 1850 0    50   Input ~ 0
 IRQ
-Wire Wire Line
-	15700 4950 15700 4750
-Text GLabel 16300 3650 2    50   Input ~ 0
-DSR
-Text GLabel 16300 3550 2    50   Output ~ 0
-DTR
-Text GLabel 15600 2650 1    50   Output ~ 0
-RTS
-Text GLabel 15500 2650 1    50   Input ~ 0
-CTS
-Text GLabel 15400 2650 1    50   Output ~ 0
-TX
-Text GLabel 15300 2650 1    50   Input ~ 0
-RX
-Text GLabel 15200 2650 1    50   Input ~ 0
+Text GLabel 7950 1450 1    50   Input ~ 0
 GND
-Text GLabel 6150 5650 3    50   Input ~ 0
+Text GLabel 10800 5650 3    50   Input ~ 0
 IRQ
-Text GLabel 15600 4750 3    50   Output ~ 0
+Text GLabel 8350 2300 3    50   Output ~ 0
 IRQ
 NoConn ~ 3750 5300
 Text Label 3750 5300 2    50   ~ 0
 Amiga_5V
-Text GLabel 6800 5650 3    50   Input ~ 0
-STROBE
 $Comp
 L Par2Ser:FT232RNL-REEL U2
 U 1 1 67123320
-P 17650 3550
-F 0 "U2" H 17650 4415 50  0000 C CNN
-F 1 "FT232RNL-REEL" H 17650 4324 50  0000 C CNN
-F 2 "Package_SO:SSOP-28_5.3x10.2mm_P0.65mm" H 18150 4250 50  0001 L CNN
-F 3 "https://ftdichip.com/wp-content/uploads/2022/12/DS_FT232RN.pdf" H 18150 4150 50  0001 L CNN
-	1    17650 3550
+P 13450 2400
+F 0 "U2" H 13450 3265 50  0000 C CNN
+F 1 "FT232RNL-REEL" H 13450 3174 50  0000 C CNN
+F 2 "Package_SO:SSOP-28_5.3x10.2mm_P0.65mm" H 13950 3100 50  0001 L CNN
+F 3 "https://ftdichip.com/wp-content/uploads/2022/12/DS_FT232RN.pdf" H 13950 3000 50  0001 L CNN
+	1    13450 2400
 	1    0    0    -1  
 $EndComp
-Text GLabel 17000 3350 0    50   Input ~ 0
+Text GLabel 12800 2200 0    50   Input ~ 0
 TX
-Text GLabel 17000 2950 0    50   Output ~ 0
+Text GLabel 12800 1800 0    50   Output ~ 0
 RX
-Text GLabel 17000 3150 0    50   Output ~ 0
+Text GLabel 12800 2000 0    50   Output ~ 0
 CTS
-Text GLabel 17000 3950 0    50   Input ~ 0
+Text GLabel 12800 2800 0    50   Input ~ 0
 RTS
-Text GLabel 18300 4150 2    50   BiDi ~ 0
+Text GLabel 14100 3000 2    50   BiDi ~ 0
 USBDM
-Text GLabel 18300 4250 2    50   BiDi ~ 0
+Text GLabel 14100 3100 2    50   BiDi ~ 0
 USBDP
-Text GLabel 18700 3750 2    50   Input ~ 0
+Text GLabel 14500 2600 2    50   Input ~ 0
 VCC
-Text GLabel 16700 3150 1    50   Input ~ 0
+Text GLabel 12500 2000 1    50   Input ~ 0
 VCC
-Text GLabel 18300 3850 2    50   Input ~ 0
+Text GLabel 14100 2700 2    50   Input ~ 0
 RESET
-Text GLabel 18300 3950 2    50   Input ~ 0
+Text GLabel 14100 2800 2    50   Input ~ 0
 GND
-Text GLabel 18300 3650 2    50   Input ~ 0
+Text GLabel 14100 2500 2    50   Input ~ 0
 GND
-Text GLabel 18300 3150 2    50   Input ~ 0
+Text GLabel 14100 2000 2    50   Input ~ 0
 GND
-Text GLabel 18300 3250 2    50   Input ~ 0
+Text GLabel 14100 2100 2    50   Input ~ 0
 GND
-NoConn ~ 18300 3350
-Text GLabel 17000 3650 0    50   Output ~ 0
+NoConn ~ 14100 2200
+Text GLabel 12800 2500 0    50   Output ~ 0
 CTS
-NoConn ~ 17000 3450
-Text GLabel 17000 3750 0    50   Input ~ 0
+NoConn ~ 12800 2300
+Text GLabel 12800 2600 0    50   Input ~ 0
 DTR
 Wire Wire Line
-	17000 3850 17000 3750
-Text GLabel 17000 3050 0    50   Output ~ 0
+	12800 2700 12800 2600
+Text GLabel 12800 1900 0    50   Output ~ 0
 DSR
-Text GLabel 15800 2650 1    50   Input ~ 0
-DSR
-Text GLabel 14700 3950 0    50   Input ~ 0
+Text GLabel 8800 1500 0    50   Input ~ 0
 GND
 Wire Wire Line
-	14300 3850 14700 3850
-Wire Wire Line
-	14300 3750 14300 3850
-Connection ~ 14300 3850
-NoConn ~ 18300 2950
-NoConn ~ 18300 3050
+	8400 1300 8400 1400
+NoConn ~ 14100 1800
+NoConn ~ 14100 1900
 $Comp
 L Device:C_Small C5
 U 1 1 67141D33
-P 16700 3350
-F 0 "C5" H 16550 3400 50  0000 C CNN
-F 1 "0.1uF" H 16500 3300 50  0000 C CNN
-F 2 "Capacitor_SMD:C_0805_2012Metric_Pad1.18x1.45mm_HandSolder" H 16700 3350 50  0001 C CNN
-F 3 "~" H 16700 3350 50  0001 C CNN
-	1    16700 3350
+P 12500 2200
+F 0 "C5" H 12350 2250 50  0000 C CNN
+F 1 "0.1uF" H 12300 2150 50  0000 C CNN
+F 2 "Capacitor_SMD:C_0805_2012Metric_Pad1.18x1.45mm_HandSolder" H 12500 2200 50  0001 C CNN
+F 3 "~" H 12500 2200 50  0001 C CNN
+	1    12500 2200
 	1    0    0    -1  
 $EndComp
 Wire Wire Line
-	17000 3250 16700 3250
+	12800 2100 12500 2100
 Wire Wire Line
-	16700 3250 16700 3150
-Connection ~ 16700 3250
-Text GLabel 16700 3450 3    50   Input ~ 0
+	12500 2100 12500 2000
+Connection ~ 12500 2100
+Text GLabel 12500 2300 3    50   Input ~ 0
 GND
 Wire Wire Line
-	6150 5650 6150 5550
-Text GLabel 6400 5250 1    50   Input ~ 0
-VCC
-Text GLabel 6150 5250 1    50   Input ~ 0
+	10800 5650 10800 5550
+Text GLabel 10800 5250 1    50   Input ~ 0
 3V3
 Wire Wire Line
-	6150 5250 6150 5350
-Text GLabel 18300 3450 2    50   Input ~ 0
+	10800 5250 10800 5350
+Text GLabel 14100 2300 2    50   Input ~ 0
 TXLED
-Text GLabel 18300 3550 2    50   Input ~ 0
+Text GLabel 14100 2400 2    50   Input ~ 0
 RXLED
-$Comp
-L Par2Ser:Abracon-ASFL1-7.3728MHZ-EK-T X1
-U 1 1 6719B2CF
-P 16950 5250
-F 0 "X1" H 17250 5400 50  0000 L CNN
-F 1 "Abracon-ASFL1-7.3728MHZ-EK-T" H 17100 5550 50  0000 L CNN
-F 2 "Oscillator:Oscillator_SMD_SeikoEpson_SG8002LB-4Pin_5.0x3.2mm" H 17650 4900 50  0001 C CNN
-F 3 "" H 16850 5250 50  0001 C CNN
-	1    16950 5250
-	1    0    0    -1  
-$EndComp
-Text GLabel 16550 4950 0    50   Input ~ 0
+Text GLabel 12350 3800 0    50   Input ~ 0
 3V3
 Wire Wire Line
-	16550 4950 16650 4950
-Connection ~ 16750 4950
+	12350 3800 12450 3800
+Connection ~ 12550 3800
 Wire Wire Line
-	16750 4950 16950 4950
-Text GLabel 16750 4750 1    50   Input ~ 0
+	12550 3800 12750 3800
+Text GLabel 12550 3600 1    50   Input ~ 0
 GND
-Text GLabel 16950 5550 3    50   Input ~ 0
-GND
-Text GLabel 17250 5250 2    50   Output ~ 0
-7M
-Wire Wire Line
-	16650 5250 16650 4950
-Connection ~ 16650 4950
-Wire Wire Line
-	16650 4950 16750 4950
-Text GLabel 1750 3900 0    50   Input ~ 0
-SS
-$Comp
-L Transistor_BJT:BC857 Q1
-U 1 1 671F3028
-P 2400 3900
-F 0 "Q1" H 2591 3854 50  0000 L CNN
-F 1 "BC857" H 2591 3945 50  0000 L CNN
-F 2 "Package_TO_SOT_SMD:SOT-23_Handsoldering" H 2600 3825 50  0001 L CIN
-F 3 "https://www.onsemi.com/pub/Collateral/BC860-D.pdf" H 2400 3900 50  0001 L CNN
-	1    2400 3900
-	1    0    0    1   
-$EndComp
-Wire Wire Line
-	1750 3900 1900 3900
-Wire Wire Line
-	2100 3900 2200 3900
-Wire Wire Line
-	2400 3500 2500 3500
-Wire Wire Line
-	2500 3500 2500 3700
-Text GLabel 2500 4900 3    50   Input ~ 0
+Text GLabel 12750 4400 3    50   Input ~ 0
 GND
 Wire Wire Line
-	2500 4900 2500 4800
+	12450 4100 12450 3800
+Connection ~ 12450 3800
+Wire Wire Line
+	12450 3800 12550 3800
+Text GLabel 2250 4650 3    50   Input ~ 0
+GND
+Wire Wire Line
+	2250 4650 2250 4550
 Wire Notes Line
 	1550 5300 2950 5300
 Wire Notes Line
 	2950 3250 2950 5300
 Wire Notes Line
 	1550 3250 1550 5300
-Text Label 2100 3900 0    50   ~ 0
-Base
-Text Label 2500 4150 0    50   ~ 0
-Collector
 Wire Wire Line
-	18300 3750 18700 3750
+	14100 2600 14500 2600
 Wire Wire Line
-	18700 3750 18700 3600
-Text GLabel 18700 3400 1    50   Input ~ 0
+	14500 2600 14500 2450
+Text GLabel 14500 2250 1    50   Input ~ 0
 GND
 $Comp
 L Device:C_Small C4
 U 1 1 67247829
-P 18700 4300
-F 0 "C4" H 18850 4400 50  0000 C CNN
-F 1 "0.1uF" H 18900 4500 50  0000 C CNN
-F 2 "Capacitor_SMD:C_0805_2012Metric_Pad1.18x1.45mm_HandSolder" H 18700 4300 50  0001 C CNN
-F 3 "~" H 18700 4300 50  0001 C CNN
-	1    18700 4300
+P 14500 3150
+F 0 "C4" H 14650 3250 50  0000 C CNN
+F 1 "0.1uF" H 14700 3350 50  0000 C CNN
+F 2 "Capacitor_SMD:C_0805_2012Metric_Pad1.18x1.45mm_HandSolder" H 14500 3150 50  0001 C CNN
+F 3 "~" H 14500 3150 50  0001 C CNN
+	1    14500 3150
 	-1   0    0    1   
 $EndComp
 Wire Wire Line
-	18300 4050 18700 4050
+	14100 2900 14500 2900
 Wire Wire Line
-	18700 4050 18700 4200
-Text GLabel 18700 4400 3    50   Input ~ 0
+	14500 2900 14500 3050
+Text GLabel 14500 3250 3    50   Input ~ 0
 GND
+NoConn ~ 12800 2900
+NoConn ~ 12800 3000
+NoConn ~ 12800 3100
 $Comp
-L Connector_Generic:Conn_01x02 J2
-U 1 1 6725E5A4
-P 12500 1950
-F 0 "J2" V 12464 1762 50  0000 R CNN
-F 1 "Arduino UART header" V 12750 2050 50  0000 R CNN
-F 2 "Par2Ser:PinSocket_1x02_P2.54mm_SMD" H 12500 1950 50  0001 C CNN
-F 3 "~" H 12500 1950 50  0001 C CNN
-	1    12500 1950
-	0    -1   -1   0   
-$EndComp
-NoConn ~ 15700 2650
-NoConn ~ 15700 4950
-NoConn ~ 16300 4050
-NoConn ~ 16300 3950
-NoConn ~ 16300 3850
-NoConn ~ 17000 4050
-NoConn ~ 17000 4150
-NoConn ~ 17000 4250
-$Comp
-L Connector:USB_C_Receptacle_USB2.0 J3
+L Connector:USB_C_Receptacle_USB2.0 J2
 U 1 1 6728305B
 P 3650 6350
-F 0 "J3" V 3711 7080 50  0000 L CNN
+F 0 "J2" V 3711 7080 50  0000 L CNN
 F 1 "USB_C_Receptacle_USB2.0" V 3802 7080 50  0000 L CNN
 F 2 "Connector_USB:USB_C_Receptacle_HRO_TYPE-C-31-M-12" H 3800 6350 50  0001 C CNN
 F 3 "https://www.usb.org/sites/default/files/documents/usb_type-c.zip" H 3800 6350 50  0001 C CNN
@@ -834,29 +654,10 @@ Wire Wire Line
 	5750 7450 5750 7150
 Connection ~ 4450 7450
 $Comp
-L Connector_Generic:Conn_01x02 J4
-U 1 1 67261FA5
-P 12900 1950
-F 0 "J4" V 12864 1762 50  0001 R CNN
-F 1 "Conn_01x02" V 12773 1762 50  0001 R CNN
-F 2 "Par2Ser:PinSocket_1x02_P2.54mm_SMD" H 12900 1950 50  0001 C CNN
-F 3 "~" H 12900 1950 50  0001 C CNN
-	1    12900 1950
-	0    -1   -1   0   
-$EndComp
-Text GLabel 12900 2150 3    50   Input ~ 0
-GND
-Text GLabel 13000 2150 3    50   Input ~ 0
-GND
-Text Notes 12450 1850 0    50   ~ 0
-Top
-Text Notes 12850 1850 0    50   ~ 0
-Bottom
-$Comp
-L Par2Ser:LC4032V-5TN48C U4
+L Par2Ser:LC4032V-5TN48C U1
 U 1 1 6A10FE30
 P 5850 3000
-F 0 "U4" H 5800 3000 50  0000 L CNN
+F 0 "U1" H 5800 3000 50  0000 L CNN
 F 1 "LC4032V-5TN48C" H 5550 3300 50  0000 L CNN
 F 2 "Package_QFP:TQFP-48_7x7mm_P0.5mm" H 6550 4150 50  0001 L CNN
 F 3 "https://componentsearchengine.com/Datasheets/34/LC4032V-5TN48C.pdf" H 6550 4050 50  0001 L CNN
@@ -880,29 +681,191 @@ Text GLabel 5000 2950 0    50   Input ~ 0
 Text GLabel 6700 3050 2    50   Input ~ 0
 3V3
 Text GLabel 5000 3550 0    50   Input ~ 0
-1V8
+3V3
 Text GLabel 6700 2450 2    50   Input ~ 0
-1V8
+3V3
 Text GLabel 6000 4250 3    50   BiDi ~ 0
-D0
+D0_B0
 Text GLabel 6100 4250 3    50   BiDi ~ 0
-D1
+D1_B1
 Text GLabel 6200 4250 3    50   BiDi ~ 0
-D2
+D2_B2
 Text GLabel 6300 4250 3    50   BiDi ~ 0
-D3
+D3_B3
 Text GLabel 6400 4250 3    50   BiDi ~ 0
-D4
+D4_B4
 Text GLabel 6700 3450 2    50   BiDi ~ 0
-D5
+D5_B5
 Text GLabel 6700 3350 2    50   BiDi ~ 0
-D6
+D6_B6
 Text GLabel 6700 3250 2    50   BiDi ~ 0
-D7
+D7_B7
 Text GLabel 5800 4250 3    50   Input ~ 0
 RESET
 Text GLabel 3750 4900 0    50   Output ~ 0
 RESET
+Text GLabel 5700 1650 1    50   BiDi ~ 0
+D0_3V3
+Text GLabel 5600 1650 1    50   BiDi ~ 0
+D1_3V3
+Text GLabel 5500 1650 1    50   BiDi ~ 0
+D2_3V3
+Text GLabel 5400 1650 1    50   BiDi ~ 0
+D3_3V3
+Text GLabel 5300 1650 1    50   BiDi ~ 0
+D4_3V3
+Text GLabel 5000 2550 0    50   BiDi ~ 0
+D5_3V3
+Text GLabel 5000 2650 0    50   BiDi ~ 0
+D6_3V3
+Text GLabel 5000 2750 0    50   BiDi ~ 0
+D7_3V3
+$Comp
+L Par2Ser:FT240XS-R U3
+U 1 1 6A22D05C
+P 9150 3250
+F 0 "U3" H 9150 4065 50  0000 C CNN
+F 1 "FT240XS-R" H 9150 3974 50  0000 C CNN
+F 2 "Par2Ser:SOP64P599X175-24N" H 8900 3950 50  0001 L CNN
+F 3 "http://www.ftdichip.com/Support/Documents/DataSheets/ICs/DS_FT240X.pdf" H 9650 3800 50  0001 L CNN
+	1    9150 3250
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:R_Pack04 RN3
+U 1 1 6A265F89
+P 8950 5450
+F 0 "RN3" H 9138 5496 50  0000 L CNN
+F 1 "330" H 9138 5405 50  0000 L CNN
+F 2 "Resistor_SMD:R_Array_Convex_4x0603" V 9225 5450 50  0001 C CNN
+F 3 "~" H 8950 5450 50  0001 C CNN
+	1    8950 5450
+	1    0    0    -1  
+$EndComp
+Text GLabel 4950 5650 3    50   BiDi ~ 0
+D0_B0
+Text GLabel 6050 5250 1    50   Input ~ 0
+3V3
+$Comp
+L Device:R_Network04 RN2
+U 1 1 6A24EE3C
+P 6250 5450
+F 0 "RN2" H 6438 5496 50  0000 L CNN
+F 1 "10k" H 6438 5405 50  0000 L CNN
+F 2 "Resistor_THT:R_Array_SIP5" V 6525 5450 50  0001 C CNN
+F 3 "http://www.vishay.com/docs/31509/csc.pdf" H 6250 5450 50  0001 C CNN
+	1    6250 5450
+	1    0    0    -1  
+$EndComp
 Text GLabel 4950 5250 1    50   Input ~ 0
 3V3
+Text GLabel 6050 5650 3    50   BiDi ~ 0
+SELECT_B11
+Text GLabel 6150 5650 3    50   BiDi ~ 0
+POUT_B10
+Text GLabel 6250 5650 3    50   BiDi ~ 0
+BUSY_B9
+Text GLabel 5650 5650 3    50   BiDi ~ 0
+D7_B7
+Text GLabel 5550 5650 3    50   BiDi ~ 0
+D6_B6
+Text GLabel 5450 5650 3    50   BiDi ~ 0
+D5_B5
+Text GLabel 5350 5650 3    50   BiDi ~ 0
+D4_B4
+Text GLabel 5250 5650 3    50   BiDi ~ 0
+D3_B3
+Text GLabel 5150 5650 3    50   BiDi ~ 0
+D2_B2
+Text GLabel 5050 5650 3    50   BiDi ~ 0
+D1_B1
+$Comp
+L Device:R_Network08 RN1
+U 1 1 670EBA04
+P 5350 5450
+F 0 "RN1" H 5738 5496 50  0000 L CNN
+F 1 "10k" H 5738 5405 50  0000 L CNN
+F 2 "Resistor_THT:R_Array_SIP9" V 5825 5450 50  0001 C CNN
+F 3 "http://www.vishay.com/docs/31509/csc.pdf" H 5350 5450 50  0001 C CNN
+	1    5350 5450
+	1    0    0    -1  
+$EndComp
+Text GLabel 9050 5250 1    50   BiDi ~ 0
+D0
+Text GLabel 9050 5650 3    50   BiDi ~ 0
+D0_B0
+Text GLabel 8750 5650 3    50   BiDi ~ 0
+D3_B3
+Text GLabel 8850 5650 3    50   BiDi ~ 0
+D2_B2
+Text GLabel 8950 5650 3    50   BiDi ~ 0
+D1_B1
+Text GLabel 8950 5250 1    50   BiDi ~ 0
+D1
+Text GLabel 8850 5250 1    50   BiDi ~ 0
+D2
+Text GLabel 8750 5250 1    50   BiDi ~ 0
+D3
+$Comp
+L Device:R_Pack04 RN4
+U 1 1 6A289A33
+P 8250 5450
+F 0 "RN4" H 8438 5496 50  0000 L CNN
+F 1 "330" H 8438 5405 50  0000 L CNN
+F 2 "Resistor_SMD:R_Array_Convex_4x0603" V 8525 5450 50  0001 C CNN
+F 3 "~" H 8250 5450 50  0001 C CNN
+	1    8250 5450
+	1    0    0    -1  
+$EndComp
+Text GLabel 8350 5650 3    50   BiDi ~ 0
+D4_B4
+Text GLabel 8250 5650 3    50   BiDi ~ 0
+D5_B5
+Text GLabel 8150 5650 3    50   BiDi ~ 0
+D6_B6
+Text GLabel 8050 5650 3    50   BiDi ~ 0
+D7_B7
+Text GLabel 8350 5250 1    50   BiDi ~ 0
+D4
+Text GLabel 8250 5250 1    50   BiDi ~ 0
+D5
+Text GLabel 8150 5250 1    50   BiDi ~ 0
+D6
+Text GLabel 8050 5250 1    50   BiDi ~ 0
+D7
+$Comp
+L Device:R_Pack04 RN5
+U 1 1 6A2B099B
+P 7500 5450
+F 0 "RN5" H 7688 5496 50  0000 L CNN
+F 1 "330" H 7688 5405 50  0000 L CNN
+F 2 "Resistor_SMD:R_Array_Convex_4x0603" V 7775 5450 50  0001 C CNN
+F 3 "~" H 7500 5450 50  0001 C CNN
+	1    7500 5450
+	1    0    0    -1  
+$EndComp
+Text GLabel 6350 5650 3    50   Input ~ 0
+TMS
+Text GLabel 7400 5250 1    50   BiDi ~ 0
+POUT
+Text GLabel 7500 5250 1    50   BiDi ~ 0
+BUSY
+Text GLabel 7300 5250 1    50   BiDi ~ 0
+SELECT
+NoConn ~ 7600 5250
+NoConn ~ 7600 5650
+Text GLabel 7300 5650 3    50   BiDi ~ 0
+SELECT_B11
+Text GLabel 7400 5650 3    50   BiDi ~ 0
+POUT_B10
+Text GLabel 7500 5650 3    50   BiDi ~ 0
+BUSY_B9
+Wire Wire Line
+	6850 5350 6850 4850
+Wire Wire Line
+	6850 4850 5900 4850
+Wire Wire Line
+	5900 4850 5900 4250
+Text Label 6850 4850 0    50   ~ 0
+STRB
 $EndSCHEMATC
