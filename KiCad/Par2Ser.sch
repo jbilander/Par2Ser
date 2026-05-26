@@ -552,10 +552,10 @@ D6_3V3
 Text GLabel 5500 1650 1    50   BiDi ~ 0
 D7_3V3
 $Comp
-L Par2Ser:FT240XS-R U3
+L Par2Ser:FT240XS-R U2
 U 1 1 6A22D05C
 P 9150 3250
-F 0 "U3" H 9150 4065 50  0000 C CNN
+F 0 "U2" H 9150 4065 50  0000 C CNN
 F 1 "FT240XS-R" H 9150 3974 50  0000 C CNN
 F 2 "Package_SO:SSOP-24_3.9x8.7mm_P0.635mm" H 8900 3950 50  0001 L CNN
 F 3 "http://www.ftdichip.com/Support/Documents/DataSheets/ICs/DS_FT240X.pdf" H 9650 3800 50  0001 L CNN
@@ -730,9 +730,9 @@ Text GLabel 8500 3200 0    50   Input ~ 0
 GND
 Text GLabel 9800 3200 2    50   Input ~ 0
 GND
-Text GLabel 9800 3700 2    50   BiDi ~ 0
+Text GLabel 10450 3700 2    50   BiDi ~ 0
 USBDM
-Text GLabel 9800 3800 2    50   BiDi ~ 0
+Text GLabel 10450 3800 2    50   BiDi ~ 0
 USBDP
 Text GLabel 9800 3600 2    50   Input ~ 0
 3V3
@@ -892,4 +892,34 @@ Wire Wire Line
 	2150 1200 2150 1350
 Wire Wire Line
 	2400 1200 2400 1350
+$Comp
+L Device:R_Small R10
+U 1 1 6A5B4EB2
+P 10150 3800
+F 0 "R10" V 10050 3800 50  0000 C CNN
+F 1 "27" V 10050 3600 50  0000 L CNN
+F 2 "Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder" H 10150 3800 50  0001 C CNN
+F 3 "~" H 10150 3800 50  0001 C CNN
+	1    10150 3800
+	0    -1   -1   0   
+$EndComp
+$Comp
+L Device:R_Small R9
+U 1 1 6A5B195C
+P 10150 3700
+F 0 "R9" V 10250 3700 50  0000 C CNN
+F 1 "27" V 10250 3500 50  0000 L CNN
+F 2 "Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder" H 10150 3700 50  0001 C CNN
+F 3 "~" H 10150 3700 50  0001 C CNN
+	1    10150 3700
+	0    -1   -1   0   
+$EndComp
+Wire Wire Line
+	10050 3700 9800 3700
+Wire Wire Line
+	10050 3800 9800 3800
+Wire Wire Line
+	10450 3700 10250 3700
+Wire Wire Line
+	10450 3800 10250 3800
 $EndSCHEMATC
