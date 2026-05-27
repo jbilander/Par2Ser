@@ -226,10 +226,10 @@ F 3 "~" H 6850 5450 50  0001 C CNN
 	-1   0    0    1   
 $EndComp
 $Comp
-L Device:C_Small C7
+L Device:C_Small C9
 U 1 1 611D1D5F
 P 8500 1250
-F 0 "C7" H 8650 1250 50  0000 C CNN
+F 0 "C9" H 8650 1250 50  0000 C CNN
 F 1 "0.1uF" H 8550 1400 50  0000 C CNN
 F 2 "Capacitor_SMD:C_0603_1608Metric_Pad1.08x0.95mm_HandSolder" H 8500 1250 50  0001 C CNN
 F 3 "~" H 8500 1250 50  0001 C CNN
@@ -237,10 +237,10 @@ F 3 "~" H 8500 1250 50  0001 C CNN
 	-1   0    0    1   
 $EndComp
 $Comp
-L Device:C_Small C5
+L Device:C_Small C7
 U 1 1 612089E2
 P 7900 1250
-F 0 "C5" H 7750 1250 50  0000 C CNN
+F 0 "C7" H 7750 1250 50  0000 C CNN
 F 1 "0.1uF" H 7850 1100 50  0000 C CNN
 F 2 "Capacitor_SMD:C_0805_2012Metric_Pad1.18x1.45mm_HandSolder" H 7900 1250 50  0001 C CNN
 F 3 "~" H 7900 1250 50  0001 C CNN
@@ -257,10 +257,10 @@ NoConn ~ 3750 5300
 Text Label 3750 5300 2    50   ~ 0
 Amiga_5V
 $Comp
-L Device:C_Small C4
+L Device:C_Small C6
 U 1 1 67141D33
 P 6050 7200
-F 0 "C4" H 5900 7200 50  0000 C CNN
+F 0 "C6" H 5900 7200 50  0000 C CNN
 F 1 "0.1uF" H 5950 7100 50  0000 C CNN
 F 2 "Capacitor_SMD:C_0805_2012Metric_Pad1.18x1.45mm_HandSolder" H 6050 7200 50  0001 C CNN
 F 3 "~" H 6050 7200 50  0001 C CNN
@@ -284,10 +284,10 @@ Wire Notes Line
 Text GLabel 7700 1350 0    50   Input ~ 0
 GND
 $Comp
-L Device:C_Small C3
+L Device:C_Small C5
 U 1 1 67247829
 P 4950 7200
-F 0 "C3" H 5100 7200 50  0000 C CNN
+F 0 "C5" H 5100 7200 50  0000 C CNN
 F 1 "0.1uF" H 5050 7300 50  0000 C CNN
 F 2 "Capacitor_SMD:C_0805_2012Metric_Pad1.18x1.45mm_HandSolder" H 4950 7200 50  0001 C CNN
 F 3 "~" H 4950 7200 50  0001 C CNN
@@ -452,10 +452,10 @@ Connection ~ 3500 7450
 Wire Wire Line
 	3500 7450 3300 7450
 $Comp
-L Device:C_Small C8
+L Device:C_Small C3
 U 1 1 671F8752
 P 3300 7250
-F 0 "C8" H 3450 7250 50  0000 C CNN
+F 0 "C3" H 3450 7250 50  0000 C CNN
 F 1 "47pF" H 3500 7350 50  0000 C CNN
 F 2 "Capacitor_SMD:C_0603_1608Metric_Pad1.08x0.95mm_HandSolder" H 3300 7250 50  0001 C CNN
 F 3 "~" H 3300 7250 50  0001 C CNN
@@ -463,10 +463,10 @@ F 3 "~" H 3300 7250 50  0001 C CNN
 	-1   0    0    1   
 $EndComp
 $Comp
-L Device:C_Small C9
+L Device:C_Small C4
 U 1 1 671FEDD5
 P 3500 7250
-F 0 "C9" H 3350 7250 50  0000 C CNN
+F 0 "C4" H 3350 7250 50  0000 C CNN
 F 1 "47pF" H 3350 7350 50  0000 C CNN
 F 2 "Capacitor_SMD:C_0603_1608Metric_Pad1.08x0.95mm_HandSolder" H 3500 7250 50  0001 C CNN
 F 3 "~" H 3500 7250 50  0001 C CNN
@@ -700,10 +700,10 @@ Wire Wire Line
 Text Label 6850 4850 0    50   ~ 0
 STRB
 $Comp
-L Device:C_Small C6
+L Device:C_Small C8
 U 1 1 5EB53531
 P 8200 1250
-F 0 "C6" H 8050 1250 50  0000 C CNN
+F 0 "C8" H 8050 1250 50  0000 C CNN
 F 1 "0.1uF" H 8150 1100 50  0000 C CNN
 F 2 "Capacitor_SMD:C_0603_1608Metric_Pad1.08x0.95mm_HandSolder" H 8200 1250 50  0001 C CNN
 F 3 "~" H 8200 1250 50  0001 C CNN
@@ -922,4 +922,55 @@ Wire Wire Line
 	10450 3700 10250 3700
 Wire Wire Line
 	10450 3800 10250 3800
+$Comp
+L Device:C_Small C10
+U 1 1 6A632E26
+P 8800 1250
+F 0 "C10" H 8950 1250 50  0000 C CNN
+F 1 "0.1uF" H 8850 1400 50  0000 C CNN
+F 2 "Capacitor_SMD:C_0603_1608Metric_Pad1.08x0.95mm_HandSolder" H 8800 1250 50  0001 C CNN
+F 3 "~" H 8800 1250 50  0001 C CNN
+	1    8800 1250
+	-1   0    0    1   
+$EndComp
+Wire Wire Line
+	8800 1150 8500 1150
+Connection ~ 8500 1150
+Wire Wire Line
+	8800 1350 8500 1350
+Connection ~ 8500 1350
+$Comp
+L Device:C_Small C11
+U 1 1 6A647103
+P 9100 1250
+F 0 "C11" H 9250 1250 50  0000 C CNN
+F 1 "0.1uF" H 9150 1400 50  0000 C CNN
+F 2 "Capacitor_SMD:C_0603_1608Metric_Pad1.08x0.95mm_HandSolder" H 9100 1250 50  0001 C CNN
+F 3 "~" H 9100 1250 50  0001 C CNN
+	1    9100 1250
+	-1   0    0    1   
+$EndComp
+Wire Wire Line
+	8800 1150 9100 1150
+Connection ~ 8800 1150
+Wire Wire Line
+	8800 1350 9100 1350
+Connection ~ 8800 1350
+$Comp
+L Device:C_Small C12
+U 1 1 6A67B251
+P 9400 1250
+F 0 "C12" H 9550 1250 50  0000 C CNN
+F 1 "0.1uF" H 9450 1400 50  0000 C CNN
+F 2 "Capacitor_SMD:C_0603_1608Metric_Pad1.08x0.95mm_HandSolder" H 9400 1250 50  0001 C CNN
+F 3 "~" H 9400 1250 50  0001 C CNN
+	1    9400 1250
+	-1   0    0    1   
+$EndComp
+Wire Wire Line
+	9400 1150 9100 1150
+Connection ~ 9100 1150
+Wire Wire Line
+	9400 1350 9100 1350
+Connection ~ 9100 1350
 $EndSCHEMATC
