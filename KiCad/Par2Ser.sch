@@ -502,7 +502,7 @@ GND
 Text GLabel 5000 2450 0    50   Input ~ 0
 TDI
 Text GLabel 6700 2550 2    50   Output ~ 0
-TD0
+TDO
 Text GLabel 6700 3550 2    50   Input ~ 0
 TMS
 Text GLabel 5000 3450 0    50   Input ~ 0
@@ -984,7 +984,7 @@ F 3 "~" H 1500 6350 50  0001 C CNN
 	1    1500 6350
 	1    0    0    -1  
 $EndComp
-Text GLabel 1300 6150 0    50   Input ~ 0
+Text GLabel 850  6150 0    50   Input ~ 0
 TCK
 Text GLabel 1300 6250 0    50   Input ~ 0
 TMS
@@ -1003,4 +1003,26 @@ Text GLabel 1800 6350 2    50   Input ~ 0
 3V3
 Text Notes 1450 6750 0    50   ~ 0
 JTAG
+$Comp
+L Device:R_Small R?
+U 1 1 6A16EF59
+P 950 5900
+F 0 "R?" H 1050 5900 50  0000 C CNN
+F 1 "4.7k" H 750 5900 50  0000 L CNN
+F 2 "Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder" H 950 5900 50  0001 C CNN
+F 3 "~" H 950 5900 50  0001 C CNN
+	1    950  5900
+	-1   0    0    1   
+$EndComp
+Text GLabel 950  5700 1    50   Input ~ 0
+GND
+Wire Wire Line
+	950  5700 950  5800
+Wire Wire Line
+	850  6150 950  6150
+Wire Wire Line
+	950  6000 950  6150
+Connection ~ 950  6150
+Wire Wire Line
+	950  6150 1300 6150
 $EndSCHEMATC
