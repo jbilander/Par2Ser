@@ -973,4 +973,34 @@ Connection ~ 9100 1150
 Wire Wire Line
 	9400 1350 9100 1350
 Connection ~ 9100 1350
+$Comp
+L Connector_Generic:Conn_02x05_Odd_Even J3
+U 1 1 6A69D469
+P 1500 6350
+F 0 "J3" H 1550 6767 50  0000 C CNN
+F 1 "Conn_02x05_Odd_Even" H 1550 6676 50  0000 C CNN
+F 2 "Connector_PinHeader_2.54mm:PinHeader_2x05_P2.54mm_Vertical" H 1500 6350 50  0001 C CNN
+F 3 "~" H 1500 6350 50  0001 C CNN
+	1    1500 6350
+	1    0    0    -1  
+$EndComp
+Text GLabel 1300 6150 0    50   Input ~ 0
+TCK
+Text GLabel 1300 6250 0    50   Input ~ 0
+TMS
+Text GLabel 1300 6350 0    50   Input ~ 0
+TDI
+Text GLabel 1300 6450 0    50   Output ~ 0
+TDO
+NoConn ~ 1300 6550
+NoConn ~ 1800 6550
+NoConn ~ 1800 6450
+Text GLabel 1800 6150 2    50   Input ~ 0
+GND
+Text GLabel 1800 6250 2    50   Input ~ 0
+GND
+Text GLabel 1800 6350 2    50   Input ~ 0
+3V3
+Text Notes 1450 6750 0    50   ~ 0
+JTAG
 $EndSCHEMATC
