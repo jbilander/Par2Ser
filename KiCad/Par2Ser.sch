@@ -484,17 +484,6 @@ F 3 "~" H 5650 7200 50  0001 C CNN
 	1    5650 7200
 	1    0    0    -1  
 $EndComp
-$Comp
-L Par2Ser:LC4032V-5TN48C U1
-U 1 1 6A10FE30
-P 5850 3000
-F 0 "U1" H 5800 3000 50  0000 L CNN
-F 1 "LC4032V-5TN48C" H 5550 3300 50  0000 L CNN
-F 2 "Package_QFP:TQFP-48_7x7mm_P0.5mm" H 6550 4150 50  0001 L CNN
-F 3 "https://componentsearchengine.com/Datasheets/34/LC4032V-5TN48C.pdf" H 6550 4050 50  0001 L CNN
-	1    5850 3000
-	1    0    0    -1  
-$EndComp
 Text GLabel 6700 3150 2    50   Input ~ 0
 GND
 Text GLabel 5300 4250 3    50   Input ~ 0
@@ -1082,4 +1071,32 @@ F 3 "https://www.sitime.com/support/resource-library/datasheets/sit1534-datashee
 	1    9950 4700
 	1    0    0    -1  
 $EndComp
+$Comp
+L Par2Ser:LC4064V-75TN48C U1
+U 1 1 6A25C54A
+P 5850 3000
+F 0 "U1" H 5800 3000 50  0000 L CNN
+F 1 "LC4064V-75TN48C" H 5500 3350 50  0000 L CNN
+F 2 "Package_QFP:TQFP-48_7x7mm_P0.5mm" H 6550 4150 50  0001 L CNN
+F 3 "" H 6550 4050 50  0001 L CNN
+	1    5850 3000
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:C_Small C14
+U 1 1 6A282A8C
+P 9700 1250
+F 0 "C14" H 9850 1250 50  0000 C CNN
+F 1 "0.1uF" H 9750 1400 50  0000 C CNN
+F 2 "Capacitor_SMD:C_0603_1608Metric_Pad1.08x0.95mm_HandSolder" H 9700 1250 50  0001 C CNN
+F 3 "~" H 9700 1250 50  0001 C CNN
+	1    9700 1250
+	-1   0    0    1   
+$EndComp
+Wire Wire Line
+	9400 1150 9700 1150
+Connection ~ 9400 1150
+Wire Wire Line
+	9400 1350 9700 1350
+Connection ~ 9400 1350
 $EndSCHEMATC
