@@ -1,0 +1,8 @@
+# Ignore everything in the ispLEVER working dir by default
+*
+# ...except the project definition and settings (the real inputs)
+!.gitignore
+!*.syn
+!*.prj
+!run_options.txt
+!scratchproject.prs
