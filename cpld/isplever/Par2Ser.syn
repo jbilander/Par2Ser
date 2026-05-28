@@ -2,7 +2,7 @@ JDF B
 // Created by Version 2.1 
 PROJECT Par2Ser
 DESIGN par2ser Normal
-DEVKIT LC4064V-5T48C
+DEVKIT LC4064V-75T48C
 ENTRY Pure Verilog HDL
 MODULE ..\rtl\par2ser_fsm.v
 MODSTYLE par2ser_fsm Normal

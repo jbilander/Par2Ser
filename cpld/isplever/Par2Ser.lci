@@ -1,10 +1,10 @@
 
 [Device]
 Family = lc4k;
-PartNumber = LC4064V-5T48C;
+PartNumber = LC4064V-75T48C;
 Package = 48TQFP;
 PartType = LC4064V;
-Speed = -5;
+Speed = -7.5;
 Operating_condition = COM;
 Status = Production;
 EN_PinGLB = No;
@@ -13,7 +13,7 @@ EN_PinMacrocell = No;
 [Revision]
 Parent = lc4k64v.lci;
 DATE = 05/28/2026;
-TIME = 11:27:53;
+TIME = 22:25:52;
 Source_Format = Pure_Verilog_HDL;
 Synthesis = LSE;
 
@@ -28,34 +28,34 @@ Synthesis = LSE;
 [Location Assignments]
 layer = OFF;
 clk = Pin, 43, -, -, -;
-ft_rxf_n = Pin, 14, -, A, 12;
-ft_txe_n = Pin, 15, -, A, 13;
+ft_rxf_n = Pin, 14, -, B, 8;
+ft_txe_n = Pin, 15, -, B, 10;
 rst_n = Pin, 18, -, -, -;
-amiga_ack_n = Pin, 31, -, B, 8;
-amiga_busy = Pin, 32, -, B, 9;
-ft_rd_n = Pin, 47, -, A, 3;
-ft_wr = Pin, 48, -, A, 4;
-led_act = Pin, 16, -, A, 14;
-led_rx = Pin, 39, -, B, 13;
-led_tx = Pin, 38, -, B, 12;
-amiga_d_0_ = Pin, 20, -, B, 0;
-amiga_d_1_ = Pin, 21, -, B, 1;
-amiga_d_2_ = Pin, 22, -, B, 2;
-amiga_d_3_ = Pin, 23, -, B, 3;
-amiga_d_4_ = Pin, 24, -, B, 4;
-amiga_d_5_ = Pin, 26, -, B, 5;
-amiga_d_6_ = Pin, 27, -, B, 6;
-amiga_d_7_ = Pin, 28, -, B, 7;
-amiga_pout = Pin, 33, -, B, 10;
-amiga_select = Pin, 34, -, B, 11;
-ft_d_0_ = Pin, 9, -, A, 10;
-ft_d_1_ = Pin, 45, -, A, 1;
-ft_d_2_ = Pin, 7, -, A, 8;
-ft_d_3_ = Pin, 2, -, A, 5;
-ft_d_4_ = Pin, 8, -, A, 9;
-ft_d_5_ = Pin, 4, -, A, 7;
-ft_d_6_ = Pin, 3, -, A, 6;
-ft_d_7_ = Pin, 46, -, A, 2;
+amiga_ack_n = Pin, 31, -, D, 0;
+amiga_busy = Pin, 32, -, D, 2;
+ft_rd_n = Pin, 47, -, A, 6;
+ft_wr = Pin, 48, -, A, 8;
+led_act = Pin, 16, -, B, 12;
+led_rx = Pin, 39, -, D, 10;
+led_tx = Pin, 38, -, D, 8;
+amiga_d_0_ = Pin, 20, -, C, 0;
+amiga_d_1_ = Pin, 21, -, C, 2;
+amiga_d_2_ = Pin, 22, -, C, 4;
+amiga_d_3_ = Pin, 23, -, C, 6;
+amiga_d_4_ = Pin, 24, -, C, 8;
+amiga_d_5_ = Pin, 26, -, C, 10;
+amiga_d_6_ = Pin, 27, -, C, 12;
+amiga_d_7_ = Pin, 28, -, C, 14;
+amiga_pout = Pin, 33, -, D, 4;
+amiga_select = Pin, 34, -, D, 6;
+ft_d_0_ = Pin, 9, -, B, 4;
+ft_d_1_ = Pin, 45, -, A, 2;
+ft_d_2_ = Pin, 7, -, B, 0;
+ft_d_3_ = Pin, 2, -, A, 10;
+ft_d_4_ = Pin, 8, -, B, 2;
+ft_d_5_ = Pin, 4, -, A, 14;
+ft_d_6_ = Pin, 3, -, A, 12;
+ft_d_7_ = Pin, 46, -, A, 4;
 
 [Group Assignments]
 layer = OFF;
@@ -74,10 +74,8 @@ layer = OFF;
 [OSM Bypass]
 
 [Input Registers]
-NONE = clk;
 
 [Netlist/Delay Format]
-NetList = VERILOG;
 
 [IO Types]
 layer = OFF;
@@ -133,17 +131,11 @@ fMAX_0 = 83.3333, clk, clk;
 
 [Explorer User Settings]
 
-[Pin attributes list]
-
-[global constraints list]
-
-[Global Constraints Process Update]
-
-[pin lock limitation]
-
 [LOCATION ASSIGNMENTS LIST]
 
 [RESOURCE RESERVATIONS LIST]
+
+[Pin attributes list]
 
 [individual constraints list]
 
@@ -151,9 +143,15 @@ fMAX_0 = 83.3333, clk, clk;
 
 [Timing Analyzer]
 
+[ORP Bypass]
+
 [PLL Assignments]
 
-[Dual Function Macrocell]
+[Register Powerup]
+
+[global constraints list]
+
+[Global Constraints Process Update]
 
 [Explorer Results]
 
@@ -172,10 +170,6 @@ fMAX_0 = 83.3333, clk, clk;
 [verilog synplify constraints list]
 
 [verilog spectrum constraints list]
-
-[ORP Bypass]
-
-[Register Powerup]
 
 [Constraint Version]
 version = 1.0;
