@@ -4,5 +4,6 @@
 !.gitignore
 !*.syn
 !*.prj
+!*.lci
 !run_options.txt
 !scratchproject.prs
