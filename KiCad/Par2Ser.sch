@@ -744,7 +744,7 @@ Text Label 10050 3400 0    50   ~ 0
 VCORE
 Text GLabel 10850 2250 0    50   Output ~ 0
 CLK12M
-Text GLabel 5900 1650 1    50   BiDi ~ 0
+Text GLabel 6100 1650 1    50   BiDi ~ 0
 CBUS6
 Text GLabel 9800 2900 2    50   BiDi ~ 0
 CBUS6
@@ -825,7 +825,6 @@ Wire Wire Line
 NoConn ~ 5700 1650
 NoConn ~ 5000 3350
 NoConn ~ 6000 1650
-NoConn ~ 6100 1650
 NoConn ~ 5700 4250
 $Comp
 L Device:C_Small C1
@@ -1064,4 +1063,23 @@ Wire Wire Line
 	3700 1550 4150 1550
 Wire Wire Line
 	4150 1550 4150 1350
+Text GLabel 5900 1650 1    50   Input ~ 0
+CLK32Hz
+Text GLabel 9950 5300 3    50   Input ~ 0
+GND
+Text GLabel 9950 4100 1    50   Input ~ 0
+3V3
+Text GLabel 10550 4700 2    50   Output ~ 0
+CLK32Hz
+$Comp
+L Par2Ser:SIT1534AI-H4-DCC-00.032 Y1
+U 1 1 6A21EC58
+P 9950 4700
+F 0 "Y1" H 10550 4850 50  0000 L CNN
+F 1 "SIT1534AI-H4-DCC-00.032" H 10050 4150 50  0000 L CNN
+F 2 "Par2Ser:SIT1534AIH4DCC00256" H 10400 5100 50  0001 L CNN
+F 3 "https://www.sitime.com/support/resource-library/datasheets/sit1534-datasheet" H 10400 5000 50  0001 L CNN
+	1    9950 4700
+	1    0    0    -1  
+$EndComp
 $EndSCHEMATC
