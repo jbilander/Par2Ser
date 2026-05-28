@@ -1,0 +1,14 @@
+JDF B
+// Created by Version 2.1 
+PROJECT Par2Ser
+DESIGN par2ser Normal
+DEVKIT LC4064V-5T48C
+ENTRY Pure Verilog HDL
+MODULE ..\rtl\par2ser_fsm.v
+MODSTYLE par2ser_fsm Normal
+MODULE ..\rtl\par2ser_top.v
+MODSTYLE par2ser_top Normal
+TESTFIXTURE par2ser_top ..\sim\par2ser_tb.v
+SYNTHESIS_TOOL LSE
+SIMULATOR_TOOL ModelSim
+TOPMODULE par2ser_top

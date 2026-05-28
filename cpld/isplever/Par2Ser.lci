@@ -1,0 +1,193 @@
+
+[Device]
+Family = lc4k;
+PartNumber = LC4064V-5T48C;
+Package = 48TQFP;
+PartType = LC4064V;
+Speed = -5;
+Operating_condition = COM;
+Status = Production;
+EN_PinGLB = No;
+EN_PinMacrocell = No;
+
+[Revision]
+Parent = lc4k64v.lci;
+DATE = 05/28/2026;
+TIME = 11:27:53;
+Source_Format = Pure_Verilog_HDL;
+Synthesis = LSE;
+
+[Ignore Assignments]
+
+[Clear Assignments]
+
+[Backannotate Assignments]
+
+[Global Constraints]
+
+[Location Assignments]
+layer = OFF;
+clk = Pin, 43, -, -, -;
+ft_rxf_n = Pin, 14, -, A, 12;
+ft_txe_n = Pin, 15, -, A, 13;
+rst_n = Pin, 18, -, -, -;
+amiga_ack_n = Pin, 31, -, B, 8;
+amiga_busy = Pin, 32, -, B, 9;
+ft_rd_n = Pin, 47, -, A, 3;
+ft_wr = Pin, 48, -, A, 4;
+led_act = Pin, 16, -, A, 14;
+led_rx = Pin, 39, -, B, 13;
+led_tx = Pin, 38, -, B, 12;
+amiga_d_0_ = Pin, 20, -, B, 0;
+amiga_d_1_ = Pin, 21, -, B, 1;
+amiga_d_2_ = Pin, 22, -, B, 2;
+amiga_d_3_ = Pin, 23, -, B, 3;
+amiga_d_4_ = Pin, 24, -, B, 4;
+amiga_d_5_ = Pin, 26, -, B, 5;
+amiga_d_6_ = Pin, 27, -, B, 6;
+amiga_d_7_ = Pin, 28, -, B, 7;
+amiga_pout = Pin, 33, -, B, 10;
+amiga_select = Pin, 34, -, B, 11;
+ft_d_0_ = Pin, 9, -, A, 10;
+ft_d_1_ = Pin, 45, -, A, 1;
+ft_d_2_ = Pin, 7, -, A, 8;
+ft_d_3_ = Pin, 2, -, A, 5;
+ft_d_4_ = Pin, 8, -, A, 9;
+ft_d_5_ = Pin, 4, -, A, 7;
+ft_d_6_ = Pin, 3, -, A, 6;
+ft_d_7_ = Pin, 46, -, A, 2;
+
+[Group Assignments]
+layer = OFF;
+
+[Resource Reservations]
+layer = OFF;
+
+[Fitter Report Format]
+
+[Power]
+
+[Source Constraint Option]
+
+[Fast Bypass]
+
+[OSM Bypass]
+
+[Input Registers]
+NONE = clk;
+
+[Netlist/Delay Format]
+NetList = VERILOG;
+
+[IO Types]
+layer = OFF;
+clk = LVTTL, PIN, 0, -;
+ft_rxf_n = LVTTL, PIN, 0, -;
+ft_txe_n = LVTTL, PIN, 0, -;
+rst_n = LVTTL_5V, PIN, 0, -;
+amiga_ack_n = LVCMOS33_OD, PIN, 1, -;
+amiga_busy = LVTTL, PIN, 1, -;
+ft_rd_n = LVTTL, PIN, 0, -;
+ft_wr = LVTTL, PIN, 0, -;
+led_act = LVTTL, PIN, 0, -;
+led_rx = LVTTL, PIN, 1, -;
+led_tx = LVTTL, PIN, 1, -;
+amiga_d_0_ = LVTTL, PIN, 1, -;
+amiga_d_1_ = LVTTL, PIN, 1, -;
+amiga_d_2_ = LVTTL, PIN, 1, -;
+amiga_d_3_ = LVTTL, PIN, 1, -;
+amiga_d_4_ = LVTTL, PIN, 1, -;
+amiga_d_5_ = LVTTL, PIN, 1, -;
+amiga_d_6_ = LVTTL, PIN, 1, -;
+amiga_d_7_ = LVTTL, PIN, 1, -;
+amiga_pout = LVTTL, PIN, 1, -;
+amiga_select = LVTTL, PIN, 1, -;
+ft_d_0_ = LVTTL, PIN, 0, -;
+ft_d_1_ = LVTTL, PIN, 0, -;
+ft_d_2_ = LVTTL, PIN, 0, -;
+ft_d_3_ = LVTTL, PIN, 0, -;
+ft_d_4_ = LVTTL, PIN, 0, -;
+ft_d_5_ = LVTTL, PIN, 0, -;
+ft_d_6_ = LVTTL, PIN, 0, -;
+ft_d_7_ = LVTTL, PIN, 0, -;
+
+[Pullup]
+
+[Slewrate]
+SLOW = amiga_ack_n, amiga_busy, ft_rd_n, ft_wr, led_act, led_rx, led_tx, amiga_d_0_, 
+	amiga_d_1_, amiga_d_2_, amiga_d_3_, amiga_d_4_, amiga_d_5_, amiga_d_6_, 
+	amiga_d_7_, amiga_pout, amiga_select, ft_d_0_, ft_d_1_, ft_d_2_, ft_d_3_, 
+	ft_d_4_, ft_d_5_, ft_d_6_, ft_d_7_;
+
+[Region]
+
+[Timing Constraints]
+layer = OFF;
+fMAX_0 = 83.3333, clk, clk;
+
+[HSI Attributes]
+
+[Input Delay]
+
+[opt global constraints list]
+
+[Explorer User Settings]
+
+[Pin attributes list]
+
+[global constraints list]
+
+[Global Constraints Process Update]
+
+[pin lock limitation]
+
+[LOCATION ASSIGNMENTS LIST]
+
+[RESOURCE RESERVATIONS LIST]
+
+[individual constraints list]
+
+[Attributes list setting]
+
+[Timing Analyzer]
+
+[PLL Assignments]
+
+[Dual Function Macrocell]
+
+[Explorer Results]
+
+[VHDL synplify constraints]
+
+[VHDL spectrum constraints]
+
+[verilog synplify constraints]
+
+[verilog spectrum constraints]
+
+[VHDL synplify constraints list]
+
+[VHDL spectrum constraints list]
+
+[verilog synplify constraints list]
+
+[verilog spectrum constraints list]
+
+[ORP Bypass]
+
+[Register Powerup]
+
+[Constraint Version]
+version = 1.0;
+
+[ORP ASSIGNMENTS]
+layer = OFF;
+
+[Node attribute]
+layer = OFF;
+
+[SYMBOL/MODULE attribute]
+layer = OFF;
+
+[Nodal Constraints]
+layer = OFF;
