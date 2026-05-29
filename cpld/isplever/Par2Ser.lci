@@ -12,8 +12,8 @@ EN_PinMacrocell = No;
 
 [Revision]
 Parent = lc4k64v.lci;
-DATE = 05/28/2026;
-TIME = 22:25:52;
+DATE = 05/29/2026;
+TIME = 01:35:40;
 Source_Format = Pure_Verilog_HDL;
 Synthesis = LSE;
 
@@ -79,10 +79,6 @@ layer = OFF;
 
 [IO Types]
 layer = OFF;
-clk = LVTTL, PIN, 0, -;
-ft_rxf_n = LVTTL, PIN, 0, -;
-ft_txe_n = LVTTL, PIN, 0, -;
-rst_n = LVTTL_5V, PIN, 0, -;
 amiga_ack_n = LVCMOS33_OD, PIN, 1, -;
 amiga_busy = LVTTL, PIN, 1, -;
 ft_rd_n = LVTTL, PIN, 0, -;
@@ -108,6 +104,10 @@ ft_d_4_ = LVTTL, PIN, 0, -;
 ft_d_5_ = LVTTL, PIN, 0, -;
 ft_d_6_ = LVTTL, PIN, 0, -;
 ft_d_7_ = LVTTL, PIN, 0, -;
+clk = LVTTL, PIN, 0, -;
+ft_rxf_n = LVTTL, PIN, 0, -;
+ft_txe_n = LVTTL, PIN, 0, -;
+rst_n = LVTTL_5V, PIN, 0, -;
 
 [Pullup]
 

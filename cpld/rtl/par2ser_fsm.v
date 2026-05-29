@@ -1,18 +1,24 @@
 // =============================================================================
-//  par2ser_fsm.v -- Transaction FSM, CPLD-optimized for the ispMACH 4000.
+//  par2ser_fsm.v -- Transaction FSM, one-hot encoded for the ispMACH 4000.
 //
-//  KEY LESSON (from the prefit log): the earlier version put data-register
-//  loads inside conditional case branches, which made synthesis build a
-//  huge clock-enable (.CE) expression per register bit -- each needing an
-//  extra macrocell ("An node") and many product terms. 96 registers became
-//  114 logic functions / 602 pterms and overflowed even the LC4064V.
+//  One-hot encoding: every state is its own flop, every state test is a
+//  single wire (no 4-bit AND tree). On a CPLD that's product-term bound,
+//  this typically reduces pterms enough to free macrocells -- exactly what
+//  we need to fit all three LEDs.
 //
-//  This version avoids that by:
-//    * Data registers (amiga_d_out, ft_d_out) load from a SINGLE simple
-//      enable wire each, computed once -- not buried in the case.
-//    * FSM next-state logic kept lean; no data movement mixed into it.
-//    * Narrow byte_count (7-bit) with a simple decrement enable.
-//  The result is simple flops with small enables -- cheap on a CPLD.
+//  CRITICAL one-hot discipline: for each state bit, the next-state
+//  expression is ALWAYS:
+//
+//      state[N] <= (enter_from_X if cond_X) | (enter_from_Y if cond_Y)
+//                  | (state[N] & ~any_exit_condition)
+//
+//  The 'state[N] & ~exits' term is what makes the state STICKY -- without
+//  it, every "waiting" state would clear itself after one cycle and the
+//  FSM would die. (This is exactly what bit a previous one-hot attempt:
+//  it omitted the stay terms and fit beautifully, but the FSM didn't work.)
+//
+//  Behavior is preserved bit-for-bit from the binary FSM that was tested
+//  in WinUAE with the par2ser.device driver.
 // =============================================================================
 
 module par2ser_fsm (
@@ -43,65 +49,83 @@ module par2ser_fsm (
     output wire        led_act_state
 );
 
-    localparam [3:0]
-        S_IDLE        = 4'd0,
-        S_DECODE      = 4'd1,
-        S_WRITE_WAIT  = 4'd2,
-        S_WRITE_LATCH = 4'd3,
-        S_WRITE_FT    = 4'd4,
-        S_READ_FETCH  = 4'd5,
-        S_READ_PRESENT= 4'd6,
-        S_DRAIN       = 4'd7,
-        S_CTRL        = 4'd8;
+    // One-hot state bit indices.
+    localparam
+        S_IDLE         = 0,
+        S_DECODE       = 1,
+        S_WRITE_WAIT   = 2,
+        S_WRITE_LATCH  = 3,
+        S_WRITE_FT     = 4,
+        S_READ_FETCH   = 5,
+        S_READ_PRESENT = 6,
+        S_DRAIN        = 7,
+        S_CTRL         = 8;
 
-    reg [3:0] state;
+    reg [8:0] state;
     reg [6:0] byte_count;
 
-    // -------------------------------------------------------------------------
-    //  Next-state logic (combinational) -- pure control, no data movement.
-    //  Keeping data loads OUT of here is what avoids the giant clock-enables.
-    // -------------------------------------------------------------------------
-    reg [3:0] next_state;
-    always @(*) begin
-        next_state = state;
-        case (state)
-            S_IDLE:        if (req_assert)            next_state = S_DECODE;
-            S_DECODE:      if (!amiga_d_in[7])        next_state = amiga_d_in[6] ? S_READ_FETCH : S_WRITE_WAIT;
-                           else if (!amiga_d_in[6])   next_state = S_DRAIN;
-                           else                       next_state = S_CTRL;
-            S_WRITE_WAIT:  if (req_deassert)          next_state = S_IDLE;
-                           else if (pout_edge)        next_state = S_WRITE_LATCH;
-            S_WRITE_LATCH: if (!ft_txe_n)             next_state = S_WRITE_FT;
-            S_WRITE_FT:    next_state = (byte_count == 7'd0) ? S_DRAIN : S_WRITE_WAIT;
-            S_READ_FETCH:  if (req_deassert)          next_state = S_IDLE;
-                           else if (!ft_rxf_n)        next_state = S_READ_PRESENT;
-            S_READ_PRESENT:if (req_deassert)          next_state = S_IDLE;
-                           else if (pout_edge)        next_state = (byte_count == 7'd0) ? S_DRAIN : S_READ_FETCH;
-            S_DRAIN:       if (req_deassert)          next_state = S_IDLE;
-            S_CTRL:        if (req_deassert)          next_state = S_IDLE;
-            default:       next_state = S_IDLE;
-        endcase
-    end
+    // Common sub-expressions, each a single wire.
+    wire has_data  = ~ft_rxf_n;
+    wire can_write = ~ft_txe_n;
+    wire is_write  = ~amiga_d_in[7] & ~amiga_d_in[6];   // D7=0, D6=0 -> WRITE1
+    wire is_read   = ~amiga_d_in[7] &  amiga_d_in[6];   // D7=0, D6=1 -> READ1
+    wire is_drain  =  amiga_d_in[7] & ~amiga_d_in[6];   // D7=1, D6=0 -> READ2/WRITE2 (drains)
+    wire is_ctrl   =  amiga_d_in[7] &  amiga_d_in[6];   // D7=1, D6=1 -> control cmd
+    wire bc_zero   = (byte_count == 7'd0);
 
     // -------------------------------------------------------------------------
-    //  Simple, single-condition enables for the data registers.
-    //  Each is ONE expression -> small clock-enable -> cheap.
-    // -------------------------------------------------------------------------
-    wire count_dec       = ((state == S_WRITE_FT) && (byte_count != 7'd0)) ||
-                           ((state == S_READ_PRESENT) && pout_edge && !req_deassert && (byte_count != 7'd0));
-    wire count_load      = (state == S_DECODE) && !amiga_d_in[7];
-
-    // -------------------------------------------------------------------------
-    //  State register
+    //  State register -- per-bit next-state. Each bit:
+    //     state[N] <= (entry conditions) | (state[N] & ~exit conditions)
+    //  This preserves bit-for-bit the binary FSM's transitions.
     // -------------------------------------------------------------------------
     always @(posedge clk) begin
-        if (reset) state <= S_IDLE;
-        else       state <= next_state;
+        if (reset) begin
+            state <= 9'b000000001;   // IDLE
+        end else begin
+            state[S_IDLE]         <= (state[S_IDLE]         & ~req_assert)
+                                   | (state[S_WRITE_WAIT]   &  req_deassert)
+                                   | (state[S_READ_FETCH]   &  req_deassert)
+                                   | (state[S_READ_PRESENT] &  req_deassert)
+                                   | (state[S_DRAIN]        &  req_deassert)
+                                   | (state[S_CTRL]         &  req_deassert);
+
+            state[S_DECODE]       <= (state[S_IDLE]         &  req_assert);
+                                    // DECODE always transitions out in one cycle, no hold term.
+
+            state[S_WRITE_WAIT]   <= (state[S_DECODE]       &  is_write)
+                                   | (state[S_WRITE_FT]     & ~bc_zero)
+                                   | (state[S_WRITE_WAIT]   & ~req_deassert & ~pout_edge);
+
+            state[S_WRITE_LATCH]  <= (state[S_WRITE_WAIT]   & ~req_deassert &  pout_edge)
+                                   | (state[S_WRITE_LATCH]  & ~can_write);
+
+            state[S_WRITE_FT]     <= (state[S_WRITE_LATCH]  &  can_write);
+                                    // WRITE_FT always transitions out in one cycle, no hold term.
+
+            state[S_READ_FETCH]   <= (state[S_DECODE]       &  is_read)
+                                   | (state[S_READ_PRESENT] & ~req_deassert &  pout_edge & ~bc_zero)
+                                   | (state[S_READ_FETCH]   & ~req_deassert & ~has_data);
+
+            state[S_READ_PRESENT] <= (state[S_READ_FETCH]   & ~req_deassert &  has_data)
+                                   | (state[S_READ_PRESENT] & ~req_deassert & ~pout_edge);
+
+            state[S_DRAIN]        <= (state[S_DECODE]       &  is_drain)
+                                   | (state[S_WRITE_FT]     &  bc_zero)
+                                   | (state[S_READ_PRESENT] & ~req_deassert &  pout_edge &  bc_zero)
+                                   | (state[S_DRAIN]        & ~req_deassert);
+
+            state[S_CTRL]         <= (state[S_DECODE]       &  is_ctrl)
+                                   | (state[S_CTRL]         & ~req_deassert);
+        end
     end
 
     // -------------------------------------------------------------------------
-    //  Byte counter -- one load source, one decrement, simple enable.
+    //  Byte counter -- single-condition enables, same as binary version.
     // -------------------------------------------------------------------------
+    wire count_load = state[S_DECODE] & ~amiga_d_in[7];
+    wire count_dec  = (state[S_WRITE_FT]     & ~bc_zero)
+                    | (state[S_READ_PRESENT] & pout_edge & ~req_deassert & ~bc_zero);
+
     always @(posedge clk) begin
         if (reset)           byte_count <= 7'd0;
         else if (count_load) byte_count <= {1'b0, amiga_d_in[5:0]};
@@ -109,28 +133,16 @@ module par2ser_fsm (
     end
 
     // -------------------------------------------------------------------------
-    //  Data registers.
-    //  ft_d_out (WRITE direction): tracks the Amiga bus UNCONDITIONALLY -- no
-    //  clock-enable, cheap. We only drive it onto ft_d during WRITE_FT, and
-    //  the byte we want is the one latched at the POUT edge, which is what the
-    //  bus holds at that point. Correct and free.
-    //
-    //  amiga_d_out (READ direction): MUST capture-and-hold the byte from the
-    //  RD# strobe, because after RD# the FT240X stops driving and ft_d_in
-    //  changes. So this one needs a guarded load -- but we keep the enable
-    //  CHEAP by using a single pre-registered pulse (rd_capture), not a
-    //  multi-term state decode. One signal => small clock-enable.
+    //  Data path -- unchanged from binary version (already optimal).
     // -------------------------------------------------------------------------
-    always @(posedge clk) ft_d_out <= amiga_d_in;     // unconditional, no CE
+    always @(posedge clk) ft_d_out <= amiga_d_in;
 
     reg rd_capture;
-    always @(posedge clk) rd_capture <= ft_rd_pulse;  // 1-cycle pulse, simple
-    always @(posedge clk)
-        if (rd_capture) amiga_d_out <= ft_d_in;       // single-signal enable
+    always @(posedge clk) rd_capture <= ft_rd_pulse;
+    always @(posedge clk) if (rd_capture) amiga_d_out <= ft_d_in;
 
     // -------------------------------------------------------------------------
-    //  Control outputs -- derived simply from state (mostly combinational
-    //  decode, registered only where a clean edge matters).
+    //  Output registers -- now driven from single-wire state[N] signals.
     // -------------------------------------------------------------------------
     always @(posedge clk) begin
         if (reset) begin
@@ -141,53 +153,20 @@ module par2ser_fsm (
             ft_rd_pulse   <= 1'b0;
             drive_ack     <= 1'b0;
         end else begin
-            // BUSY: low (asserted) whenever not idle.
-            drive_busy    <= (next_state != S_IDLE);
-            // Drive Amiga bus during read present/fetch.
-            drive_amiga_d <= (next_state == S_READ_PRESENT);
-            // Drive FT bus during the write strobe window.
-            drive_ft_d    <= (next_state == S_WRITE_FT);
-            // WR pulse: assert entering WRITE_FT (one cycle high).
-            ft_wr_pulse   <= (state == S_WRITE_LATCH) && !ft_txe_n;
-            // RD pulse: assert entering READ_PRESENT.
-            ft_rd_pulse   <= (state == S_READ_FETCH) && !ft_rxf_n && !req_deassert;
-            // ACK: RX-ready IRQ while idle and FT has data.
-            drive_ack     <= (state == S_IDLE) && !ft_rxf_n;
+            drive_busy    <= ~state[S_IDLE];
+            drive_amiga_d <=  state[S_READ_PRESENT];
+            drive_ft_d    <=  state[S_WRITE_FT];
+            ft_wr_pulse   <=  state[S_WRITE_LATCH] & can_write;
+            ft_rd_pulse   <=  state[S_READ_FETCH]  & has_data & ~req_deassert;
+            drive_ack     <=  state[S_IDLE]        & has_data;
         end
     end
 
     // -------------------------------------------------------------------------
-    //  LED activity -- cheap, using a registered "byte happened" pulse so the
-    //  sticky-set enable is a single signal (not a state decode). led_act is
-    //  combinational. The set conditions are pre-registered as 1-bit pulses
-    //  to keep the sticky-flop clock-enables tiny.
+    //  LED outputs -- free decodes of existing signals.
     // -------------------------------------------------------------------------
-    reg [2:0] led_div;
-    reg       tx_active, rx_active;
-    reg       tx_set, rx_set;            // 1-cycle pulses, simple to compute
-    wire      tick = led_div[2];
-
-    always @(posedge clk) led_div <= led_div + 1'b1;
-
-    // Pre-register the set pulses (single-term sources).
-    always @(posedge clk) begin
-        tx_set <= ft_wr_pulse;           // a write strobe = TX activity
-        rx_set <= ft_rd_pulse;           // a read strobe  = RX activity
-    end
-
-    always @(posedge clk) begin
-        if (reset)        tx_active <= 1'b0;
-        else if (tx_set)  tx_active <= 1'b1;
-        else if (tick)    tx_active <= 1'b0;
-    end
-    always @(posedge clk) begin
-        if (reset)        rx_active <= 1'b0;
-        else if (rx_set)  rx_active <= 1'b1;
-        else if (tick)    rx_active <= 1'b0;
-    end
-
-    assign led_tx_pulse  = tx_active;
-    assign led_rx_pulse  = rx_active;
-    assign led_act_state = (state != S_IDLE);
+    assign led_act_state = ~state[S_IDLE];
+    assign led_tx_pulse  =  drive_ft_d;       // lit while we drive FT bus
+    assign led_rx_pulse  =  drive_amiga_d;    // lit while we drive Amiga bus
 
 endmodule

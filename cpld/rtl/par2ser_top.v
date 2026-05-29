@@ -2,7 +2,8 @@
 //  par2ser_top.v -- Top-level for the Par2Ser CPLD bridge.
 //
 //  Bridges the Amiga parallel port (Niklas Ekstrom's 2E protocol) to an
-//  FT240X USB FIFO. Targets the Lattice LC4032V-5TN48C (ispMACH 4000V).
+//  FT240X USB FIFO. Targets the Lattice LC4064V-75TN48C (ispMACH 4000V,
+//  64 macrocells, 48-TQFP, -75 speed grade).
 //
 //  Pin assignments are taken directly from the Par2Ser Rev. 2A schematic
 //  netlist (CPLD = U1). The reference column in each comment is the
@@ -12,6 +13,20 @@
 //      input  = the Amiga or the FT240X drives, we sense
 //      output = we drive
 //      inout  = bidirectional; the FSM controls the OE per phase
+//
+//  Single clock domain: clk (12 MHz from FT240X CBUS5) drives the whole
+//  design.
+//
+//  LED indicators are pure combinational decodes of FSM state and signals:
+//      led_act = ~state[S_IDLE]    -- any transaction in progress
+//      led_tx  = drive_ft_d        -- we are driving the FT bus (write byte)
+//      led_rx  = drive_amiga_d     -- we are driving the Amiga bus (read byte)
+//  Visible during sustained traffic (typing, transfers); single isolated
+//  bytes pass too quickly (~10-50 us) to be seen. This is the same
+//  "lit during activity" approach used in the SDBox-v2 AVR firmware fork
+//  (see avr/main.c in jbilander/amiga-par-to-spi-adapter), where the LED
+//  is asserted together with the SPI chip-select for the duration of a
+//  transaction rather than blinked per byte.
 //
 //  Bank/tolerance notes:
 //      A-bank pins carry FT240X signals at 3.3 V (no 5 V exposure).
@@ -203,11 +218,10 @@ module par2ser_top (
     //  WR-pulse cycle, then return low; ft_wr_pulse asserts for one clock
     //  to produce that falling edge. See FSM for exact sequencing.
 
-    // LEDs - active high outputs. led_act tracks the FSM busy state directly.
-    // TX/RX get stretched in a small counter (in the FSM module) so single
-    // bytes are visible.
-    assign led_tx  = led_tx_pulse & ~reset;
-    assign led_rx  = led_rx_pulse & ~reset;
+    // LEDs - driven directly from the FSM signals. Reset gating keeps them
+    // dark while the Amiga is in reset.
+    assign led_tx  = led_tx_pulse  & ~reset;
+    assign led_rx  = led_rx_pulse  & ~reset;
     assign led_act = led_act_state & ~reset;
 
 endmodule
