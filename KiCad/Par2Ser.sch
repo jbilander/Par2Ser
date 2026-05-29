@@ -1052,25 +1052,6 @@ Wire Wire Line
 	3700 1550 4150 1550
 Wire Wire Line
 	4150 1550 4150 1350
-Text GLabel 5900 1650 1    50   Input ~ 0
-CLK32Hz
-Text GLabel 9950 5300 3    50   Input ~ 0
-GND
-Text GLabel 9950 4100 1    50   Input ~ 0
-3V3
-Text GLabel 10550 4700 2    50   Output ~ 0
-CLK32Hz
-$Comp
-L Par2Ser:SIT1534AI-H4-DCC-00.032 Y1
-U 1 1 6A21EC58
-P 9950 4700
-F 0 "Y1" H 10550 4850 50  0000 L CNN
-F 1 "SIT1534AI-H4-DCC-00.032" H 10050 4150 50  0000 L CNN
-F 2 "Par2Ser:SIT1534AIH4DCC00256" H 10400 5100 50  0001 L CNN
-F 3 "https://www.sitime.com/support/resource-library/datasheets/sit1534-datasheet" H 10400 5000 50  0001 L CNN
-	1    9950 4700
-	1    0    0    -1  
-$EndComp
 $Comp
 L Par2Ser:LC4064V-75TN48C U1
 U 1 1 6A25C54A
@@ -1082,21 +1063,5 @@ F 3 "" H 6550 4050 50  0001 L CNN
 	1    5850 3000
 	1    0    0    -1  
 $EndComp
-$Comp
-L Device:C_Small C14
-U 1 1 6A282A8C
-P 9700 1250
-F 0 "C14" H 9850 1250 50  0000 C CNN
-F 1 "0.1uF" H 9750 1400 50  0000 C CNN
-F 2 "Capacitor_SMD:C_0603_1608Metric_Pad1.08x0.95mm_HandSolder" H 9700 1250 50  0001 C CNN
-F 3 "~" H 9700 1250 50  0001 C CNN
-	1    9700 1250
-	-1   0    0    1   
-$EndComp
-Wire Wire Line
-	9400 1150 9700 1150
-Connection ~ 9400 1150
-Wire Wire Line
-	9400 1350 9700 1350
-Connection ~ 9400 1350
+NoConn ~ 5900 1650
 $EndSCHEMATC
