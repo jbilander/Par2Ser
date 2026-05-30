@@ -187,7 +187,7 @@ reply ports.
   adapter that this project is derived from. See his
   [amiga-par-to-spi-adapter](https://github.com/niklasekstrom/amiga-par-to-spi-adapter).
 - **Iain Barclay** — `8n1.device` 43.5, the serial machinery template.
-- **Bartman** — the `m68k-amiga-elf` toolchain and SimpleDevice template.
+- **Bartman** — the `m68k-amiga-elf` toolchain.
 
 ## License
 
