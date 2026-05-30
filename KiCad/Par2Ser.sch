@@ -131,7 +131,7 @@ L Device:R_Small R2
 U 1 1 5EB9BBF1
 P 2000 2300
 F 0 "R2" H 1850 2300 50  0000 L CNN
-F 1 "330" H 2050 2300 50  0000 L CNN
+F 1 "10k" H 2050 2300 50  0000 L CNN
 F 2 "Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder" H 2000 2300 50  0001 C CNN
 F 3 "~" H 2000 2300 50  0001 C CNN
 	1    2000 2300
@@ -142,7 +142,7 @@ L Device:R_Small R1
 U 1 1 5EB9CA00
 P 2250 4050
 F 0 "R1" H 2150 4050 50  0000 C CNN
-F 1 "330" H 2400 4050 50  0000 C CNN
+F 1 "1k" H 2400 4050 50  0000 C CNN
 F 2 "Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder" H 2250 4050 50  0001 C CNN
 F 3 "~" H 2250 4050 50  0001 C CNN
 	1    2250 4050
@@ -760,7 +760,7 @@ Wire Wire Line
 	11050 2250 10850 2250
 Text GLabel 5800 1650 1    50   Input ~ 0
 CLK12M
-Text GLabel 8500 3600 0    50   Input ~ 0
+Text GLabel 8100 3900 3    50   Input ~ 0
 3V3
 Text GLabel 9800 3500 2    50   Input ~ 0
 3V3
@@ -811,7 +811,6 @@ Wire Wire Line
 	7700 1150 7900 1150
 Wire Wire Line
 	7700 1350 7900 1350
-NoConn ~ 5700 1650
 NoConn ~ 5000 3350
 NoConn ~ 6000 1650
 NoConn ~ 5700 4250
@@ -1064,4 +1063,28 @@ F 3 "" H 6550 4050 50  0001 L CNN
 	1    0    0    -1  
 $EndComp
 NoConn ~ 5900 1650
+$Comp
+L Device:R_Small R12
+U 1 1 6A2FCD79
+P 8100 3750
+F 0 "R12" H 8200 3750 50  0000 C CNN
+F 1 "10k" H 7950 3750 50  0000 C CNN
+F 2 "Resistor_SMD:R_0603_1608Metric_Pad0.98x0.95mm_HandSolder" H 8100 3750 50  0001 C CNN
+F 3 "~" H 8100 3750 50  0001 C CNN
+	1    8100 3750
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	7900 3600 8100 3600
+Wire Wire Line
+	8100 3600 8100 3650
+Connection ~ 8100 3600
+Wire Wire Line
+	8100 3600 8500 3600
+Wire Wire Line
+	8100 3850 8100 3900
+Text GLabel 7900 3600 0    50   Input ~ 0
+SIWU
+Text GLabel 5700 1650 1    50   Output ~ 0
+SIWU
 $EndSCHEMATC
