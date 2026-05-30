@@ -9,6 +9,10 @@
 > issues are welcome but be aware the design may still change in
 > incompatible ways before the first release.
 
+<a href="images/Par2Ser_rev2A_pic1">
+<img src="images/Par2Ser_rev2A_pic1" width="600" height="609">
+</a>
+
 A `serial.device`-compatible Amiga driver that bridges the parallel port to a
 USB FIFO (FT240X) via Niklas Ekström's 2E par-to-spi protocol, so unmodified
 comms programs (c-kermit, NComm, …) can `set line par2ser.device`.
