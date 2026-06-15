@@ -65,10 +65,12 @@ module par2ser_top (
     //      TXE# low = TX FIFO has room to write    (input to us)
     //      RD#  low = read strobe to FT240X        (output from us)
     //      WR   high-to-low edge = write to FIFO   (output from us)
+    //      SIWU# low = flush TX buffer to USB now  (output from us)
     input  wire        ft_rxf_n,       // pin 14 (A12)
     input  wire        ft_txe_n,       // pin 15 (A13)
     output wire        ft_rd_n,        // pin 47 (A3)
     output wire        ft_wr,          // pin 48 (A4)
+    output wire        ft_siwu_n,      // pin 44 (A0)  - Send Immediate, active low
 
     // ---- Activity LEDs (active high; CPLD drives, LED to GND via resistor)
     output wire        led_tx,         // pin 38 (B12)
@@ -147,6 +149,7 @@ module par2ser_top (
     wire        led_tx_pulse;
     wire        led_rx_pulse;
     wire        led_act_state;
+    wire        siwu_n;
 
     par2ser_fsm fsm (
         .clk            (clk),
@@ -178,7 +181,10 @@ module par2ser_top (
         // LEDs
         .led_tx_pulse   (led_tx_pulse),
         .led_rx_pulse   (led_rx_pulse),
-        .led_act_state  (led_act_state)
+        .led_act_state  (led_act_state),
+
+        // FT240X Send Immediate
+        .siwu_n         (siwu_n)
     );
 
     // =========================================================================
@@ -217,6 +223,12 @@ module par2ser_top (
     //  Note: FT240X WR is "high-to-low edge writes". We hold it high in the
     //  WR-pulse cycle, then return low; ft_wr_pulse asserts for one clock
     //  to produce that falling edge. See FSM for exact sequencing.
+
+    // SIWU# (Send Immediate / Wake Up) to FT240X: active low. Asserted while
+    // the FSM is in S_CTRL (which it enters on a control command from the
+    // Amiga, D7=1, D6=1). FT240X acts on the falling edge to flush its TX
+    // buffer to USB. Forced high (deasserted) during reset.
+    assign ft_siwu_n = siwu_n | reset;
 
     // LEDs - driven directly from the FSM signals. Reset gating keeps them
     // dark while the Amiga is in reset.

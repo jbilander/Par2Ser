@@ -13,7 +13,7 @@ EN_PinMacrocell = No;
 [Revision]
 Parent = lc4k64v.lci;
 DATE = 05/29/2026;
-TIME = 01:35:40;
+TIME = 10:56:27;
 Source_Format = Pure_Verilog_HDL;
 Synthesis = LSE;
 
@@ -56,6 +56,7 @@ ft_d_4_ = Pin, 8, -, B, 2;
 ft_d_5_ = Pin, 4, -, A, 14;
 ft_d_6_ = Pin, 3, -, A, 12;
 ft_d_7_ = Pin, 46, -, A, 4;
+ft_siwu_n = Pin, 44, -, A, 0;
 
 [Group Assignments]
 layer = OFF;
@@ -108,6 +109,7 @@ clk = LVTTL, PIN, 0, -;
 ft_rxf_n = LVTTL, PIN, 0, -;
 ft_txe_n = LVTTL, PIN, 0, -;
 rst_n = LVTTL_5V, PIN, 0, -;
+ft_siwu_n = LVTTL, PIN, 0, -;
 
 [Pullup]
 
@@ -115,7 +117,7 @@ rst_n = LVTTL_5V, PIN, 0, -;
 SLOW = amiga_ack_n, amiga_busy, ft_rd_n, ft_wr, led_act, led_rx, led_tx, amiga_d_0_, 
 	amiga_d_1_, amiga_d_2_, amiga_d_3_, amiga_d_4_, amiga_d_5_, amiga_d_6_, 
 	amiga_d_7_, amiga_pout, amiga_select, ft_d_0_, ft_d_1_, ft_d_2_, ft_d_3_, 
-	ft_d_4_, ft_d_5_, ft_d_6_, ft_d_7_;
+	ft_d_4_, ft_d_5_, ft_d_6_, ft_d_7_, ft_siwu_n;
 
 [Region]
 

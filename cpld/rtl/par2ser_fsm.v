@@ -46,7 +46,8 @@ module par2ser_fsm (
 
     output wire        led_tx_pulse,
     output wire        led_rx_pulse,
-    output wire        led_act_state
+    output wire        led_act_state,
+    output wire        siwu_n           // FT240X Send Immediate, active low
 );
 
     // One-hot state bit indices.
@@ -168,5 +169,16 @@ module par2ser_fsm (
     assign led_act_state = ~state[S_IDLE];
     assign led_tx_pulse  =  drive_ft_d;       // lit while we drive FT bus
     assign led_rx_pulse  =  drive_amiga_d;    // lit while we drive Amiga bus
+
+    // -------------------------------------------------------------------------
+    //  FT240X Send Immediate (SIWU#) -- active low, asserted during any CTRL
+    //  command. A CTRL command (D7=1, D6=1 in the command byte) is the
+    //  Amiga's way of saying "flush the FT240X TX buffer to USB now".
+    //  S_CTRL is entered on the CTRL command and persists until req_deassert,
+    //  so SIWU# is held low for the entire command duration -- the FT240X
+    //  acts on the falling edge and the held-low time is harmless. Single
+    //  combinational decode -- cheap.
+    // -------------------------------------------------------------------------
+    assign siwu_n = ~state[S_CTRL];
 
 endmodule
