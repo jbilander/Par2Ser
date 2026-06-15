@@ -34,6 +34,10 @@ CPLD that speaks the 2E protocol to the Amiga and presents the bytes to an
   - `isplever/` — Lattice ispLEVER Classic 2.1 project files and pin
     constraints (`Par2Ser.lci`).
 - **`KiCad/`** — KiCad 5.1 schematic and PCB sources (Rev 2A).
+- **`FT_PROG/`** — FT_PROG template (`Par2Ser.xml`) capturing the
+  FT240X MTP settings the bridge needs (VCP enabled, CBUS5 → CLK12MHz,
+  product description). Open it in FT_PROG and apply to a fresh
+  board to skip the manual click-through.
 - **`images/`** — board photos and screenshots used in this README.
 - **`Par2Ser_rev2a_schematic.pdf`** — exported schematic for quick
   reference without opening KiCad.
@@ -120,62 +124,213 @@ Adjust `INCDIRS` for your NDK path as in SimpleDevice.
 
 ## Programming the FT240X (one-time, before first use)
 
-The CPLD needs a 12 MHz clock from the FT240X to operate. By default the
-FT240X's CBUS5 pin is not configured as a clock output — you have to set
-its function in the chip's internal MTP (one-time-programmable) memory
-using FTDI's FT_PROG utility.
+The CPLD needs a 12 MHz clock from the FT240X to operate. By default
+the FT240X's CBUS5 pin is **not** configured as a clock output — you
+have to set its function in the chip's internal MTP (one-time-programmable)
+memory using FTDI's **FT_PROG** utility. While you're at it, you should
+also tell the chip to advertise itself as a Virtual COM Port (VCP) so
+that comms software on the host can open it as a regular serial port,
+and you can optionally set a friendly USB product-description string.
+
+These settings are all stored on the FT240X chip itself — they
+persist across power cycles and across host machines.
 
 ### What you'll need
-- FTDI **FT_PROG** (free download from <https://ftdichip.com/utilities/>)
-- The Rev 2A board, powered via USB, on a Windows machine (FT_PROG is
-  Windows-only; users on Linux/macOS can use a Windows VM, or the
-  open-source `ftdi_eeprom` from libftdi as an alternative)
 
-### Steps
+- FTDI **FT_PROG** (free download from <https://ftdichip.com/utilities/>;
+  requires .NET Framework 4.0 or newer, which is included with
+  Windows 8.1 and above)
+- The Rev 2A board, powered via USB, on a Windows machine (FT_PROG
+  is Windows-only; users on Linux/macOS can use a Windows VM, or
+  the open-source `ftdi_eeprom` from libftdi as an alternative —
+  see note at the end of this section)
 
-1. Plug the Rev 2A board into a Windows PC via USB-C. Windows should
-   detect the FT240X and bind the default VCP driver, presenting a
-   COM port.
+### Install FT_PROG
 
-2. Launch FT_PROG. Click **Devices → Scan and Parse**. Your FT240X should
-   appear in the device tree as something like *"FT240X (Device 0)"*.
+Download FT_PROG from <https://ftdichip.com/utilities/> (current version
+at time of writing: 3.12.75.692). Extract the ZIP, run the installer,
+click through to **Finish**:
 
-3. In the device tree, navigate to **Hardware Specific → CBUS Signals**.
+![FT_PROG installer](images/FT_PROG_installation.png)
 
-4. Set **C5** (CBUS5) to **`CLK12MHz`** from the drop-down. The other
-   CBUS pin (C6) can be left at its default (`TRI-STATE`) or set to
-   `SLEEP#` if you want a power-state indicator — it doesn't matter for
-   the bridge's operation.
+### Fast path: apply the supplied template
 
-5. Optionally update the **USB String Descriptors** to identify the
-   device as a Par2Ser (e.g. set the Product Description to
-   *"Par2Ser USB Serial"*). Useful when several FTDI devices are plugged
-   into the same host.
+The `FT_PROG/Par2Ser.xml` file in this repo is a saved FT_PROG template
+with all the settings the Par2Ser bridge needs (VCP enabled, CBUS5 →
+CLK12MHz, CBUS6 → Keep_Awake#, Product Description → `Par2Ser USB Serial`).
+The fast path is:
 
-6. Click **Devices → Program** (the lightning-bolt icon). The settings
-   are written to the FT240X's MTP memory. **This is a one-time step
-   per board** — the configuration persists across power cycles.
+1. Plug the Rev 2A board into a Windows PC via USB-C. Windows will
+   detect the FT240X and bind FTDI's bus-level driver, presenting
+   the device as **"USB Serial Converter"** under
+   *Universal Serial Bus controllers* in Device Manager.
+2. Launch FT_PROG and **FILE → Open** the `FT_PROG/Par2Ser.xml`
+   template — this loads the desired settings into FT_PROG's editor.
+3. **DEVICES → Scan and Parse** (<kbd>Ctrl+P</kbd>) to bring the
+   live chip's current settings under the same editor.
+4. **DEVICES → Program** to apply the template values to the chip
+   — confirm the success dialog appears.
+5. Unplug and replug the board.
+
+If you'd rather understand or customize each setting, walk through
+the manual steps below instead.
+
+### Manual walkthrough (step-by-step)
+
+1. Plug the Rev 2A board into a Windows PC via USB-C. Windows will
+   detect the FT240X and bind FTDI's bus-level driver, presenting
+   the device as **"USB Serial Converter"** under
+   *Universal Serial Bus controllers* in Device Manager. (Whether
+   a COM port appears at this stage depends on the host's driver
+   state — see "Driver behavior across operating systems" below.)
+
+2. Launch FT_PROG. Click **DEVICES → Scan and Parse** (or
+   <kbd>Ctrl+P</kbd>). The device tree on the left should populate
+   with the FT240X, and the lower pane shows the EEPROM contents
+   dump:
+
+   ![FT_PROG after Scan and Parse](images/FT_PROG_config_pic1.png)
+
+3. Enable the **VCP driver mode**: in the device tree, expand
+   **Hardware Specific → Port A → Driver** and select the
+   **Virtual COM Port** radio button (it may be on "D2XX Direct"
+   by default):
+
+   ![Virtual COM Port radio button selected](images/FT_PROG_config_pic2.png)
+
+4. Configure the **CBUS5 clock output**: navigate to
+   **Hardware Specific → CBUS Signals** and set the **C5** drop-down
+   to **`CLK12MHz`**. The C6 drop-down can be left at its default
+   (`Keep_Awake#`) — CBUS6 is wired to the CPLD but not used by the
+   current firmware:
+
+   ![C5 set to CLK12MHz](images/FT_PROG_config_pic3.png)
+
+5. (Optional) Update the **USB String Descriptors** to identify the
+   device as a Par2Ser. Setting the *Product Description* to
+   `Par2Ser USB Serial` makes it easier to find when several FTDI
+   devices are plugged into the same host. The factory-assigned
+   *Serial Number* is unique per chip and stable — useful when
+   binding driver settings or `udev` rules per device:
+
+   ![Product Description set to Par2Ser USB Serial](images/FT_PROG_config_pic4.png)
+
+6. Click **DEVICES → Program** (the lightning-bolt icon). The
+   *Program Devices* dialog shows the chip type, VID/PID, and the
+   strings about to be written to MTP. Confirm the values look right
+   and click **Program**:
+
+   ![Program Devices dialog](images/FT_PROG_config_pic5.png)
+
+   You should see **"Programming Successful"** at the bottom of the
+   dialog when the write completes:
+
+   ![Programming Successful](images/FT_PROG_config_pic6.png)
 
 7. Unplug and replug the board. Windows will re-enumerate the device.
-   You should hear the USB plug/unplug sound; the CPLD should now be
-   receiving its 12 MHz clock and the on-board PWR LED should be lit.
 
 ### Verifying the configuration
-- The CPLD is unprogrammed when shipped from JLC/your PCB house, so no
-  parallel-port activity will happen yet — but the CBUS5 clock should
-  still be driving the CPLD's clock pin. With an oscilloscope on the
-  clock trace, you should see a clean 12 MHz square wave.
-- The PC should see the board as a standard USB serial port (VCP).
-  On Linux this is `/dev/ttyUSB0` (or similar); on macOS it's
-  `/dev/cu.usbserial-*`; on Windows it's a COM port number visible in
-  Device Manager.
 
-### Linux/macOS alternative (libftdi)
-On non-Windows systems, the same MTP programming can be done with
-`ftdi_eeprom` from the `libftdi` package. You'll need a small config
-file pointing at the FT240X and setting `cbus5=CLK12`. See the libftdi
-documentation for the exact syntax — this hasn't been tested by the
-author, so YMMV.
+After the FT_PROG round-trip, you can confirm the chip is configured
+correctly with one or both of:
+
+**A. Oscilloscope check of the 12 MHz clock.** With the board powered
+via USB, probe the trace at R5 (the damping resistor on the CPLD's
+clock input). You should see a clean ~12 MHz square wave near rail-to-rail
+on a 3.3 V LVTTL swing:
+
+![12 MHz clock at R5](images/FT240XS_12MHz_clock.png)
+
+The small overshoot/ringing on the edges is the scope probe's ground-lead
+inductance, not a problem with the signal — using a probe ground spring
+close to the test point cleans it up. The signal is well within LVTTL
+input tolerances at the CPLD's pin 43.
+
+**B. COM-port enumeration check on the host.** The board should appear
+as a serial port. The device name varies by OS — see below.
+
+### Driver behavior across operating systems
+
+The FT_PROG settings live on the chip; *whether* a given host then
+makes them visible as a normal COM/tty port depends on what FTDI driver
+support that host has. Tested behavior so far:
+
+| Host                    | Result                                  | Driver intervention needed |
+|-------------------------|-----------------------------------------|----------------------------|
+| **macOS 10.15 Catalina** | `/dev/cu.usbserial-XXXXXXXX` on plug-in | None — Apple's built-in `AppleUSBFTDI` driver handles it |
+| **Linux** (Pop!\_OS, Ubuntu, similar) | `/dev/ttyUSB0` on plug-in     | None — the in-kernel `ftdi_sio` module binds automatically |
+| **Windows 10/11**       | `USB Serial Port (COMn)` under *Ports (COM & LPT)* | Typically none — Windows Update pushes the FTDI CDM (Combined Driver Model) package automatically |
+| **Windows 8.1**         | Depends on the machine's history (see below) | One-time CDM install on a fresh host |
+
+The Windows 8.1 case is the only one with a footgun, and it's
+machine-specific rather than OS-specific. On Windows 8.1, the **CDM
+(Combined Driver Model)** package — which contains both the bus-level
+driver (`USB Serial Converter`) *and* the VCP layer that creates the
+COM port — is not bundled with the OS. It can be installed via
+Windows Update, but isn't always pushed automatically.
+
+In our testing on two Windows 8.1 SP2 machines:
+
+- **Machine A**: had previously hosted other FTDI devices. When the
+  Par2Ser board was first plugged in, Windows auto-installed both
+  the USB Serial Converter and the VCP layer, and a COM port
+  (`COM4`) appeared under *Ports (COM & LPT)* immediately. The
+  "Installing Par2Ser USB Serial" progress dialog appeared
+  automatically:
+
+  ![Windows automatic install dialog](images/Windows_plug_and_play_pic1.png)
+
+  After the install, Device Manager's Events tab on the resulting
+  `USB Serial Port (COMn)` entry shows the FTDI VCP driver service
+  `FTSER2K` being registered and `ftdiport.inf` driving the COM-port
+  instance — the proof that the VCP layer attached on top of the
+  bus-level driver:
+
+  ![COM port Events tab showing FTSER2K registration](images/Windows_plug_and_play_pic2.png)
+
+- **Machine B**: had not previously had an FTDI device on it.
+  Plugging in the Par2Ser board only created the *USB Serial
+  Converter* entry under *Universal Serial Bus controllers*; no COM
+  port appeared. **The fix on this machine turned out to be very
+  simple**: right-click *USB Serial Converter* in Device Manager,
+  choose **Uninstall**, in the dialog that appears **leave the
+  "Delete the driver software for this device" checkbox unchecked**,
+  click OK, then unplug and replug the board. Windows re-enumerated
+  the device, picked up the VCP driver this time, and `COM10`
+  appeared under *Ports (COM & LPT)*. Total time: about 30 seconds.
+
+  This "uninstall (keep files) then replug" trick works on a Win8.1
+  machine that has the FTDI VCP driver files present on disk but
+  somehow bound only the bus-level driver on the first plug-in.
+  The driver files are kept; only the device-to-driver binding is
+  cleared, so the next enumeration can re-pick the correct (full)
+  driver stack.
+
+**If you're on Windows 8.1 (or earlier) and no COM port appears**,
+try the uninstall-without-deleting-files trick first — it's quick
+and reversible. If that doesn't work (the VCP driver files truly
+aren't present on the machine), install FTDI's CDM driver package
+from <https://ftdichip.com/drivers/vcp-drivers/> — download the
+*setup executable*, unplug the board, run the installer, replug.
+After that the COM port will appear on every subsequent plug-in.
+The MTP setting in the chip stays correct throughout; only the
+host needs the right driver layer bound.
+
+On Linux and macOS, no equivalent step is needed — the driver shipped
+with the OS supports the FT240X out of the box.
+
+### Linux/macOS alternative for the MTP programming (libftdi)
+
+On non-Windows systems, the MTP programming (CBUS5 → CLK12MHz, VCP
+enable, etc.) can be done with `ftdi_eeprom` from the `libftdi`
+package — but it has not been tested by the author of this repo.
+You'd need a small config file pointing at the FT240X (matched by
+VID/PID `0403:6015`) and setting `cbus5=CLK12`. See the libftdi
+documentation for the exact syntax.
+
+The simplest path for now is to do the one-time FT_PROG step on any
+available Windows machine. Once the FT240X's MTP is programmed, the
+chip behaves identically on any host.
 
 ## Milestone 1 — does kermit accept it? (no hardware needed) ✅
 
