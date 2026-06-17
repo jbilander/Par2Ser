@@ -372,28 +372,35 @@ disconnected.*
 
 ### Driver setup (Windows)
 
-The FT4232H must be bound to FTDI's **D2XX** driver (not libusb-win32,
-WinUSB, or libusbK) for ispVM to recognize it. After plugging in the
-Mini Module:
+For ispVM to talk to the JTAG cable, **channel A (Interface 0) of
+the FT4232H must be bound to FTDI's D2XX driver** (not
+libusb-win32, WinUSB, or libusbK). The other three interfaces
+(B/C/D) are not used by ispVM and can stay bound to whatever
+driver they had previously.
 
-1. Open Device Manager. The Mini Module should appear as four
-   entries — either under *Universal Serial Bus controllers* (good —
-   bound to D2XX) or under another category like *libusb-win32
-   device* (wrong driver bound, typically left over from a previous
-   OpenOCD or similar libusb-based tool).
+After plugging in the Mini Module, open Device Manager and locate
+the four "Quad RS232-HS" entries (Interface 0/1/2/3). If
+Interface 0 is bound to the wrong driver — for example, listed
+under *libusb-win32 device* (a typical leftover from a previous
+OpenOCD session) rather than under *Universal Serial Bus
+controllers* — rebind it:
 
-2. If the entries are bound to the wrong driver: right-click the
-   first interface → **Update Driver Software** → **Browse my
-   computer for driver software** → **Let me pick from a list of
-   devices on my computer** → select **USB Serial Converter A**
-   (FTDI's D2XX driver, version 2.12.36.4 or newer). After updating
-   one interface, restart ispLEVER/ispVM — Windows will typically
-   re-bind the remaining three interfaces automatically on next
-   plug-in.
+1. Right-click **Quad RS232-HS (Interface 0)** → **Update Driver
+   Software** → **Browse my computer for driver software** →
+   **Let me pick from a list of devices on my computer**.
+2. Select **USB Serial Converter A** (FTDI's D2XX driver, version
+   2.12.36.4 or newer).
+3. Click Next. Windows will rebind Interface 0 to the D2XX driver
+   without affecting Interfaces 1–3.
+4. **Restart ispLEVER/ispVM** — without this, the running ispVM
+   process still has the old driver state cached and will not see
+   the cable.
 
-3. Verify in Device Manager that all four entries now read
-   `USB Serial Converter A/B/C/D` under
-   *Universal Serial Bus controllers*.
+After the rebind, Device Manager should show one entry as
+`USB Serial Converter A` under *Universal Serial Bus controllers*
+(Interface 0, the one ispVM will use), and the other three
+interfaces (1/2/3) wherever they were before — that's fine, they're
+not used for JTAG.
 
 ### Programming procedure
 
