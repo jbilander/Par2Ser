@@ -105,6 +105,60 @@ matching the value, package, and dielectric/tolerance noted.
   soldered down; you can press-and-hold the 2×5 ribbon cable
   against the pads during programming.
 
+### 3D-printable case
+
+A 3D-printable two-part case is provided in the `3D/` folder. It is
+adapted from the former **SDBox-v2** case, slimmed down and made more
+proportional — the Rev 2A design no longer has to house a bulky
+Arduino Nano v3, so the enclosure is significantly thinner. The DB-25
+exits one end and the USB-C port the other, and the top lid has two
+holes for the panel LEDs: one for the **Power LED (green)** and one for
+the **Activity LED (yellow)**.
+
+| File | Description |
+|------|-------------|
+| `3D/Par2Ser.scdoc` | SpaceClaim source file for the case |
+| `3D/Par2Ser.stp` | STEP export (top + bottom) for use in other CAD tools |
+| `3D/Par2Ser_top.stl` | Top lid, ready to slice and print |
+| `3D/Par2Ser_bottom.stl` | Bottom shell, ready to slice and print |
+| `3D/Par2Ser_text.skp` | SketchUp source for the embossed "Par2Ser" lid text |
+
+<table>
+  <tr>
+    <td align="center">
+      <a href="images/Par2Ser_case_pic3.png">
+        <img src="images/Par2Ser_case_pic3.png" width="380">
+      </a><br />
+      <sub>DB-25 end, with the two LED holes in the top lid</sub>
+    </td>
+    <td align="center">
+      <a href="images/Par2Ser_case_pic1.png">
+        <img src="images/Par2Ser_case_pic1.png" width="380">
+      </a><br />
+      <sub>USB-C end</sub>
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <a href="images/Par2Ser_case_pic2.png">
+        <img src="images/Par2Ser_case_pic2.png" width="380">
+      </a><br />
+      <sub>Side profile showing the slimmer enclosure</sub>
+    </td>
+    <td align="center">
+      <a href="images/Par2Ser_case_pic4.png">
+        <img src="images/Par2Ser_case_pic4.png" width="380">
+      </a><br />
+      <sub>PCB fitted into the bottom shell</sub>
+    </td>
+  </tr>
+</table>
+
+The renders above are from the CAD program. A test print is currently
+running on a Creality Ender-3 Pro; once the PCB is fitted and the two
+panel LEDs (green Power, yellow Activity) are soldered through the lid
+holes, photos of the finished printed case will be added here.
+
 ## Files (amiga/)
 
 - `par2ser.c` — device skeleton + serial command set + receive ring buffer
