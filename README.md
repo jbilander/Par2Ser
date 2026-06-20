@@ -129,27 +129,27 @@ the **Activity LED (yellow)**.
       <a href="images/Par2Ser_case_pic3.png">
         <img src="images/Par2Ser_case_pic3.png" width="380">
       </a><br />
-      <sub>DB-25 end, with the two LED holes in the top lid</sub>
+      <sub>USB-C end, with the two LED holes in the top lid</sub>
     </td>
     <td align="center">
       <a href="images/Par2Ser_case_pic1.png">
         <img src="images/Par2Ser_case_pic1.png" width="380">
       </a><br />
-      <sub>USB-C end</sub>
+      <sub>DB-25 end</sub>
     </td>
   </tr>
   <tr>
-    <td align="center">
-      <a href="images/Par2Ser_case_pic2.png">
-        <img src="images/Par2Ser_case_pic2.png" width="380">
-      </a><br />
-      <sub>Side profile showing the slimmer enclosure</sub>
-    </td>
     <td align="center">
       <a href="images/Par2Ser_case_pic4.png">
         <img src="images/Par2Ser_case_pic4.png" width="380">
       </a><br />
       <sub>PCB fitted into the bottom shell</sub>
+    </td>
+    <td align="center">
+      <a href="images/Par2Ser_case_pic2.png">
+        <img src="images/Par2Ser_case_pic2.png" width="380">
+      </a><br />
+      <sub>Side profile showing the slimmer enclosure</sub>
     </td>
   </tr>
 </table>
