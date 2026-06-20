@@ -143,13 +143,13 @@ the **Activity LED (yellow)**.
       <a href="images/Par2Ser_case_pic4.png">
         <img src="images/Par2Ser_case_pic4.png" width="380">
       </a><br />
-      <sub>PCB fitted into the bottom shell</sub>
+      <sub>Side profile showing the slimmer enclosure</sub>
     </td>
     <td align="center">
       <a href="images/Par2Ser_case_pic2.png">
         <img src="images/Par2Ser_case_pic2.png" width="380">
       </a><br />
-      <sub>Side profile showing the slimmer enclosure</sub>
+      <sub>PCB fitted into the bottom shell</sub>
     </td>
   </tr>
 </table>
