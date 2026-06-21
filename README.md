@@ -154,10 +154,66 @@ the **Activity LED (yellow)**.
   </tr>
 </table>
 
-The renders above are from the CAD program. A test print is currently
-running on a Creality Ender-3 Pro; once the PCB is fitted and the two
-panel LEDs (green Power, yellow Activity) are soldered through the lid
-holes, photos of the finished printed case will be added here.
+The renders above are from the CAD program. The case was printed on a
+Creality Ender-3 Pro in white PLA. The build photos below show the
+assembly steps and the finished unit fitted to an Amiga 500.
+
+#### Fitting the panel LEDs
+
+The two indicator LEDs are soldered last. Fit the **PWR (green, Power)**
+and **ACT (yellow, Activity)** LEDs into their positions, then check
+from the top that each one protrudes ever so slightly through its hole
+in the case lid. Once the height looks right, tack down a single leg,
+snip the leads flush, and only then solder both joints properly. Doing
+it in that order keeps the LEDs sitting at the correct height instead of
+being pushed in or standing too proud.
+
+<table>
+  <tr>
+    <td align="center">
+      <a href="images/Par2Ser_soldering_PWR_and_ACT_LEDs.jpg">
+        <img src="images/Par2Ser_soldering_PWR_and_ACT_LEDs.jpg" width="380">
+      </a><br />
+      <sub>Test-fitting the green PWR and yellow ACT LEDs before tacking them down</sub>
+    </td>
+    <td align="center">
+      <a href="images/Par2Ser_soldering_completed.jpg">
+        <img src="images/Par2Ser_soldering_completed.jpg" width="380">
+      </a><br />
+      <sub>Underside of the finished board seated in the bottom shell</sub>
+    </td>
+  </tr>
+</table>
+
+#### Finished unit
+
+<table>
+  <tr>
+    <td align="center">
+      <a href="images/Par2Ser_installed_in_case.jpg">
+        <img src="images/Par2Ser_installed_in_case.jpg" width="380">
+      </a><br />
+      <sub>Assembled case closed up, with the PWR/ACT LEDs visible through the lid</sub>
+    </td>
+    <td align="center">
+      <a href="images/Par2Ser_installed_in_A500_and_connected_to_PC.jpg">
+        <img src="images/Par2Ser_installed_in_A500_and_connected_to_PC.jpg" width="380">
+      </a><br />
+      <sub>Plugged into the A500 parallel port and connected to a PC over USB-C</sub>
+    </td>
+  </tr>
+</table>
+
+In the powered-on photo the green **PWR** LED is lit, and the red glow
+bleeding through the lid is the FT240XS **RX/TX** LEDs shining through
+the white PLA — here the blink firmware has the **TX** LED on. This is
+something of a happy accident: if you don't want the glow, print the
+case in black or another dark material, or simply leave the RX/TX LEDs
+unpopulated.
+
+> **Note:** The USB-C cut-out in the current print is slightly too wide.
+> It's a cosmetic issue only — the port works fine — and will be tidied
+> up shortly so the opening sits more symmetrically around the connector.
 
 ## Files (amiga/)
 
