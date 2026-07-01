@@ -10,9 +10,15 @@
  * have been removed -- on Par2Ser the FLAG line is the FT240X RX doorbell and
  * is owned by par2ser.c's INTB_PORTS receive server, not by this layer.
  *
- * Speed: the original slow (250 kHz) / fast (8 MHz) split is kept because the
- * fast path (adapter_low.s) is a meaningful throughput win and costs nothing
- * to retain. Slow is the default after adapter_init(), matching Niklas.
+ * Transfer paths: two implementations, selected by adapter_set_speed().
+ *   SLOW = C bit-bang with a per-byte delay (adapter_*_slow).
+ *   FAST = tight-loop assembly with no inter-byte delay (adapter_low.s).
+ * The original slow/fast labels meant the AVR's SPI clock to the SD card
+ * (250 kHz / 8 MHz); those frequencies do NOT apply to Par2Ser (12 MHz CPLD,
+ * no SPI). Here the only difference is inter-byte delay vs none -- both are
+ * kept because FAST is a meaningful throughput win and costs nothing to
+ * retain. SLOW is the default after adapter_init() and is the safe, debuggable
+ * bring-up path. (The SPEED_SLOW/SPEED_FAST names are a mild SPI-era holdover.)
  */
 #ifndef ADAPTER_H
 #define ADAPTER_H
@@ -36,7 +42,9 @@ int  adapter_init(void);
  * adapter_init() partially failed. Does not touch any interrupt vector. */
 void adapter_shutdown(void);
 
-/* Slow (250 kHz) or fast (8 MHz). Slow by default after adapter_init(). */
+/* Select transfer path: ADAPTER_SPEED_SLOW (C bit-bang, per-byte delay) or
+ * ADAPTER_SPEED_FAST (tight-loop asm, no delay). SLOW by default after
+ * adapter_init(). Not an adapter clock rate -- see the header comment. */
 void adapter_set_speed(long speed);
 
 /* Blocking block transfer. 1 <= size <= 64 for a single WRITE1/READ1 command

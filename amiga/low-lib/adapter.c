@@ -95,7 +95,11 @@ void adapter_set_speed(long speed)
 	current_speed = speed;
 }
 
-/* A slow transfer takes ~32 us (8 bits * 4us at 250kHz); an E-cycle is 1.4us. */
+/* Inter-byte settling delay for the slow (bit-bang) path: 32 reads of a CIA
+ * register. Each CIA access is paced by the ~1.4 us E-clock cycle, so this is
+ * ~45 us. It gives the adapter time to accept/present a byte between clocks;
+ * the original derived ~32 us from the AVR's 250 kHz SPI byte time, which no
+ * longer applies on Par2Ser -- here it is just a settling margin. */
 static void wait_40_us(void)
 {
 	UBYTE tmp;
