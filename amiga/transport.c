@@ -1,31 +1,20 @@
 /*
- * transport.c -- STUB transport for par2ser.device (Milestone 1).
+ * transport.c -- byte-pipe transport for par2ser.device.
  *
- * Lets you load par2ser.device and run kermit's `set line` / status
- * negotiation in WinUAE with NO hardware attached:
- *   - transport_write()  : swallows bytes, reports them all "sent"
- *   - transport_poll_rx(): never returns data (RX stays empty)
+ * Two implementations selected at compile time:
  *
- * MILESTONE 2 -- real hardware:
- *   Add Niklas's spi-lib (spi.c / spi_low.asm / spi.h) to OBJECTS and replace
- *   the stub bodies below. The wire protocol is unchanged from his AVR repo,
- *   so spi_low.asm is reused verbatim (the D0-5/D6-7 split is invisible on the
- *   Amiga side). Sketch:
+ *   default (Milestone 1, no PAR2SER_HW): STUB. Lets you load par2ser.device
+ *   and run kermit's `set line` / status negotiation in WinUAE with NO
+ *   hardware -- transport_write() swallows bytes, transport_poll_rx() never
+ *   returns data.
  *
- *     #include "spi.h"
- *     BOOL transport_init(void)  { return spi_initialize(NULL) == 0; }
- *     void transport_shutdown(void) { spi_shutdown(); }
- *     LONG transport_write(const UBYTE *b, ULONG n) { spi_write((UBYTE*)b, n); return n; }
- *     LONG transport_poll_rx(UBYTE *out) {
- *         // requires a CPLD status command (free cmd slot 3+) that exposes /RXF,
- *         // OR drive CIA-A FLAG from /RXF and read one byte per FLAG. Then:
- *         //   if (!rx_available()) return 0;
- *         //   spi_read(out, 1); return 1;
- *     }
+ *   PAR2SER_HW (Milestone 2): real transport over low-lib/adapter.* (Niklas
+ *   Ekström's 2E par-adapter protocol -> FT240X).
  *
- * Note: spi-lib's spi_read(buf,size) wants a known count. For a stream we read
- * one byte at a time while the adapter says a byte is available -- which is why
- * transport_poll_rx is the single-byte primitive the ISR loops on.
+ * Layering:
+ *   par2ser.device  <-- serial.device kermit talks to (upward face)
+ *   transport.c     <-- this file: the abstraction seam
+ *   adapter.c/.s    <-- 2E wire protocol (downward face)
  */
 
 #include "transport.h"
@@ -36,6 +25,75 @@ extern void KPrintF(CONST_STRPTR fmt, ...);
 #else
 #define DBG(...)
 #endif
+
+#ifdef PAR2SER_HW
+/* ================= Milestone 2: real hardware transport ================= */
+
+#include <proto/exec.h>
+#include <hardware/cia.h>
+#include "low-lib/adapter.h"
+
+/* Max bytes per WRITE1/READ1 command on the current CPLD: the length field is
+ * 6 bits, encoded as size-1, so 1..64. Anything larger would emit a 10xxxxxx
+ * first byte the FSM routes to S_DRAIN and silently drops. Chunk here. */
+#define ADAPTER_CHUNK 64
+
+/* RX doorbell: par2ser.c owns CIA-A FLAG via an INTB_PORTS server. The CPLD
+ * asserts ACK (drive_ack = S_IDLE & has_data) while the FT240X RX FIFO is
+ * non-empty. We read that line to decide "is a byte waiting?".
+ *
+ * TODO(hw): confirm the exact bit + polarity against
+ * Par2Ser_rev2a_schematic.pdf. ACK is nominally CIA-A PA0 and active-low on
+ * the connector. If ACK is NOT readable as a CIA-A PRA bit on Rev 2A, this
+ * must be driven from the FLAG interrupt latch instead (read once per
+ * rx_server entry) rather than polled -- in which case transport_poll_rx()
+ * becomes an unconditional single READ1 and rx_server loops a fixed count.
+ * That is the single hardware unknown to resolve on first bring-up. */
+static volatile UBYTE *cia_a_pra = (volatile UBYTE *)0xbfe001;
+#define RXF_PENDING_MASK  0x01
+
+static BOOL rx_data_pending(void)
+{
+    return (*cia_a_pra & RXF_PENDING_MASK) ? FALSE : TRUE;  /* active-low */
+}
+
+BOOL transport_init(void)
+{
+    int rc = adapter_init();
+    DBG((CONST_STRPTR)"transport_init() adapter_init=%ld\n", (LONG)rc);
+    return rc == 0 ? TRUE : FALSE;
+}
+
+void transport_shutdown(void)
+{
+    DBG((CONST_STRPTR)"transport_shutdown()\n");
+    adapter_shutdown();
+}
+
+LONG transport_write(const UBYTE *buf, ULONG len)
+{
+    ULONG sent = 0;
+    while (sent < len) {
+        ULONG chunk = len - sent;
+        if (chunk > ADAPTER_CHUNK)
+            chunk = ADAPTER_CHUNK;
+        adapter_write(buf + sent, chunk);   /* blocking 2E WRITE1 */
+        sent += chunk;
+    }
+    DBG((CONST_STRPTR)"transport_write(%ld) -> %ld\n", (LONG)len, (LONG)sent);
+    return (LONG)sent;
+}
+
+LONG transport_poll_rx(UBYTE *out)
+{
+    if (!rx_data_pending())
+        return 0;
+    adapter_read(out, 1);                   /* blocking 2E READ1, one byte */
+    return 1;
+}
+
+#else
+/* ===================== Milestone 1: STUB transport ====================== */
 
 BOOL transport_init(void)
 {
@@ -60,3 +118,5 @@ LONG transport_poll_rx(UBYTE *out)
     (void)out;
     return 0;                  /* no hardware -> never any RX data */
 }
+
+#endif /* PAR2SER_HW */

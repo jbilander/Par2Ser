@@ -3,9 +3,9 @@ RELDIR=build-release
 DEBUGDIR=build-debug
 OBJECTS=par2ser.o transport.o
 
-SRCDIRS=.
+SRCDIRS=. low-lib
 #INCDIRS=.
-INCDIRS=. $(HOME)/AMIGA_GCC/NDK_3.2_elf/sys-include
+INCDIRS=. low-lib $(HOME)/AMIGA_GCC/NDK_3.2_elf/sys-include
 
 TARGET = elf-toolchain
 #TARGET = hunk-toolchain
@@ -29,9 +29,9 @@ else
 endif
 
 # Uncomment to compile in the real adapter receive interrupt (CIA-A FLAG on
-# INTB_PORTS) and the spi-lib transport. Leave off for hardware-free testing.
+# INTB_PORTS) and the low-lib 2E transport. Leave off for hardware-free testing.
 #EXTRA_CFLAGS+= -DPAR2SER_HW
-#OBJECTS+= spi.o spi_low.o
+#OBJECTS+= adapter.o adapter_low.o
 
 ifeq ($(TARGET), elf-toolchain)
  CC=m68k-amiga-elf-gcc
