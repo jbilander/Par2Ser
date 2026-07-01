@@ -224,7 +224,7 @@ int adapter_init(void)
 	got_bits = FALSE;
 	current_speed = ADAPTER_SPEED_SLOW;
 
-	miscbase = (struct Library *)OpenResource(MISCNAME);
+	miscbase = (struct Library *)OpenResource((CONST_STRPTR)MISCNAME);
 	if (!miscbase)
 	{
 		success = -1;

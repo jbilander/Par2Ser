@@ -30,8 +30,8 @@ endif
 
 # Uncomment to compile in the real adapter receive interrupt (CIA-A FLAG on
 # INTB_PORTS) and the low-lib 2E transport. Leave off for hardware-free testing.
-#EXTRA_CFLAGS+= -DPAR2SER_HW
-#OBJECTS+= adapter.o adapter_low.o
+EXTRA_CFLAGS+= -DPAR2SER_HW
+OBJECTS+= adapter.o adapter_low.o
 
 ifeq ($(TARGET), elf-toolchain)
  CC=m68k-amiga-elf-gcc
