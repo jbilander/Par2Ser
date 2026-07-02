@@ -156,7 +156,12 @@ module par2ser_fsm (
         end else begin
             drive_busy    <= ~state[S_IDLE];
             drive_amiga_d <=  state[S_READ_PRESENT];
-            drive_ft_d    <=  state[S_WRITE_FT];
+            // Drive the FT data bus one cycle EARLIER (S_WRITE_LATCH) and hold it
+            // through S_WRITE_FT, so the bus is valid before, during, and after the
+            // ft_wr_pulse (which fires in the S_WRITE_FT cycle). The FT240X latches on
+            // WR's falling edge; previously drive_ft_d asserted a cycle too late and WR
+            // strobed a high-Z bus, latching garbage. See timing note below.
+            drive_ft_d    <=  state[S_WRITE_LATCH] | state[S_WRITE_FT];
             ft_wr_pulse   <=  state[S_WRITE_LATCH] & can_write;
             ft_rd_pulse   <=  state[S_READ_FETCH]  & has_data & ~req_deassert;
             drive_ack     <=  state[S_IDLE]        & has_data;
