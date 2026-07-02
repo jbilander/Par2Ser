@@ -13,6 +13,14 @@
 
 #include <exec/types.h>
 
+/* RX bring-up gate. While 0, the RX doorbell is treated as unverified: the
+ * device installs NO INTB_PORTS receive server and transport_poll_rx() is
+ * inert, so a stuck/misread FLAG line cannot storm interrupts or wedge the
+ * machine at open. TX is unaffected. Flip to 1 only after the doorbell bit
+ * and polarity are confirmed against the Rev 2A schematic. Keep this in sync
+ * with the RX code path in transport.c. */
+#define PAR2SER_RX_ENABLED 0
+
 /* One-time setup / teardown. transport_init() returns FALSE on failure
  * (e.g. parallel port resource busy). Called from device Open/Close. */
 BOOL transport_init(void);

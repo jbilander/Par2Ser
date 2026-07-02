@@ -38,6 +38,13 @@ extern void KPrintF(CONST_STRPTR fmt, ...);
  * first byte the FSM routes to S_DRAIN and silently drops. Chunk here. */
 #define ADAPTER_CHUNK 64
 
+/* --- RX bring-up gate -----------------------------------------------------
+ * Controlled by PAR2SER_RX_ENABLED in transport.h (shared with par2ser.c so
+ * the INTB_PORTS server is also not installed while RX is gated off). While
+ * off, transport_poll_rx() is inert and no receive interrupt is hooked, so a
+ * stuck/misread FLAG line cannot storm interrupts at open. TX is unaffected. */
+#define RX_ENABLED PAR2SER_RX_ENABLED
+
 /* RX doorbell: par2ser.c owns CIA-A FLAG via an INTB_PORTS server. The CPLD
  * asserts ACK (drive_ack = S_IDLE & has_data) while the FT240X RX FIFO is
  * non-empty. We read that line to decide "is a byte waiting?".
@@ -46,9 +53,8 @@ extern void KPrintF(CONST_STRPTR fmt, ...);
  * Par2Ser_rev2a_schematic.pdf. ACK is nominally CIA-A PA0 and active-low on
  * the connector. If ACK is NOT readable as a CIA-A PRA bit on Rev 2A, this
  * must be driven from the FLAG interrupt latch instead (read once per
- * rx_server entry) rather than polled -- in which case transport_poll_rx()
- * becomes an unconditional single READ1 and rx_server loops a fixed count.
- * That is the single hardware unknown to resolve on first bring-up. */
+ * rx_server entry) rather than polled. */
+#if RX_ENABLED
 static volatile UBYTE *cia_a_pra = (volatile UBYTE *)0xbfe001;
 #define RXF_PENDING_MASK  0x01
 
@@ -56,6 +62,7 @@ static BOOL rx_data_pending(void)
 {
     return (*cia_a_pra & RXF_PENDING_MASK) ? FALSE : TRUE;  /* active-low */
 }
+#endif
 
 BOOL transport_init(void)
 {
@@ -86,10 +93,15 @@ LONG transport_write(const UBYTE *buf, ULONG len)
 
 LONG transport_poll_rx(UBYTE *out)
 {
+#if RX_ENABLED
     if (!rx_data_pending())
         return 0;
     adapter_read(out, 1);                   /* blocking 2E READ1, one byte */
     return 1;
+#else
+    (void)out;
+    return 0;                               /* RX gated off until doorbell verified */
+#endif
 }
 
 #else

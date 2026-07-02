@@ -252,14 +252,19 @@ static void service_reads(void)
 static ULONG __attribute__((used)) rx_server(APTR data asm("a1"))
 {
     UBYTE c;
-    /* transport_poll_rx() returns 1 and stores a byte while RXF holds. */
-    while (transport_poll_rx(&c))
+    /* Drain a BOUNDED number of bytes per interrupt. An interrupt server must
+     * always return; if the doorbell were ever stuck asserted (e.g. wrong
+     * polarity, or CPLD timing), an unbounded `while (transport_poll_rx())`
+     * would spin here forever with the machine wedged. The cap bounds worst
+     * case; remaining bytes are picked up on the next FLAG. */
+    int guard = 256;
+    while (guard-- > 0 && transport_poll_rx(&c))
         rx_feed(c);
     service_reads();
     return 0;        /* let other PORTS servers run too */
 }
 
-static void rx_install(void)
+static void __attribute__((used)) rx_install(void)
 {
     if (rx_int_added)
         return;
@@ -272,7 +277,7 @@ static void rx_install(void)
     rx_int_added = TRUE;
 }
 
-static void rx_remove(void)
+static void __attribute__((used)) rx_remove(void)
 {
     if (!rx_int_added)
         return;
@@ -426,7 +431,11 @@ static void do_open(struct Library *dev, struct IORequest *ioreq,
         active_read = NULL;
         init_list(&read_q);
 #ifdef PAR2SER_HW
+#if PAR2SER_RX_ENABLED
         rx_install();
+#else
+        DBG("  RX gated off (PAR2SER_RX_ENABLED=0): no INTB_PORTS server\n");
+#endif
 #endif
         is_open = TRUE;
     }
@@ -457,7 +466,9 @@ static BPTR do_close(struct Library *dev, struct IORequest *ioreq)
 
     if (--dev->lib_OpenCnt == 0) {
 #ifdef PAR2SER_HW
+#if PAR2SER_RX_ENABLED
         rx_remove();
+#endif
 #endif
         transport_shutdown();
         if (rbuf) { FreeMem(rbuf, rbuf_len); rbuf = NULL; rbuf_len = 0; }

@@ -51,12 +51,49 @@ static void putch(UBYTE c    asm("d0"),
     raw_put_char(c);
 }
 
+/*
+ * KPrintF -- format via exec RawDoFmt, output via RawPutChar.
+ *
+ * IMPORTANT m68k gotcha: RawDoFmt's third-from-left arg is a DataStream --
+ * a pointer to the format arguments laid out as CONTIGUOUS values in memory,
+ * which it walks by advancing that pointer per format specifier. It is NOT a
+ * va_list. Passing a gcc va_list directly happens to work for a single
+ * argument on this toolchain but derails with multiple arguments (the second
+ * and later reads walk off into wrong memory, hanging or faulting inside
+ * RawDoFmt). So we marshal the varargs into a local contiguous ULONG array
+ * with portable va_arg and hand RawDoFmt a pointer to that.
+ *
+ * Contract: every % specifier in a format string must consume one ULONG
+ * (use %ld / %lx / %lu and cast each argument to ULONG at the call site,
+ * which this codebase already does). MAX_ARGS caps the count per call.
+ */
+#define KPRINTF_MAX_ARGS 12
+
 void KPrintF(CONST_STRPTR fmt, ...)
 {
+    ULONG args[KPRINTF_MAX_ARGS];
+    int n = 0;
+    const char *p = (const char *)fmt;
     va_list ap;
+
+    /* Count % specifiers (excluding %% ) to know how many longs to pull. */
+    while (*p && n < KPRINTF_MAX_ARGS) {
+        if (*p++ == '%') {
+            if (*p == '%') { p++; continue; }  /* literal %% */
+            n++;
+            /* skip the rest of this specifier's chars up to the conversion */
+            while (*p && !((*p >= 'a' && *p <= 'z') || (*p >= 'A' && *p <= 'Z')))
+                p++;
+            if (*p) p++;                       /* the conversion letter */
+        }
+    }
+
     va_start(ap, fmt);
-    RawDoFmt((STRPTR)fmt, ap, (void (*)())putch, NULL);
+    for (int i = 0; i < n; i++)
+        args[i] = va_arg(ap, ULONG);
     va_end(ap);
+
+    RawDoFmt((STRPTR)fmt, (APTR)args, (void (*)())putch, NULL);
 }
 
 #endif /* DEBUG */
