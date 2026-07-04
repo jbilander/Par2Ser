@@ -35,6 +35,11 @@
 
 #include "adapter.h"
 
+/* KS 1.3 compatibility guard -- MUST be last, after all system/NDK headers,
+ * so their unconditional declarations are seen before the poison pragmas.
+ * Any KS 2.0+ call below this point becomes a compile error. */
+#include <ks13_compat.h>
+
 #define REQ_BIT		CIAB_PRTRSEL
 #define CLK_BIT		CIAB_PRTRPOUT
 #define ACT_BIT		CIAB_PRTRBUSY

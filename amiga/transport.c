@@ -33,6 +33,11 @@ extern void KPrintF(CONST_STRPTR fmt, ...);
 #include <hardware/cia.h>
 #include "low-lib/adapter.h"
 
+/* KS 1.3 compatibility guard -- MUST be last, after all system/NDK headers,
+ * so their unconditional declarations are seen before the poison pragmas.
+ * Any KS 2.0+ call below this point becomes a compile error. */
+#include <ks13_compat.h>
+
 /* Max bytes per WRITE1/READ1 command on the current CPLD: the length field is
  * 6 bits, encoded as size-1, so 1..64. Anything larger would emit a 10xxxxxx
  * first byte the FSM routes to S_DRAIN and silently drops. Chunk here. */

@@ -33,6 +33,11 @@
 
 #include "transport.h"
 
+/* KS 1.3 compatibility guard -- MUST be last, after all system/NDK headers,
+ * so their unconditional declarations are seen before the poison pragmas.
+ * Any KS 2.0+ call below this point becomes a compile error. */
+#include <ks13_compat.h>
+
 #if DEBUG
 extern void KPrintF(CONST_STRPTR fmt, ...);
 #define DBG(...) KPrintF((CONST_STRPTR)__VA_ARGS__)
