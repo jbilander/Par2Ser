@@ -1,13 +1,14 @@
 # Amiga Par2Ser device
 
-> ⚠️ **Status: Pre-release / untested on real hardware.**
-> This project is being made public as a work-in-progress. The Verilog and
-> driver code have only been validated in simulation and WinUAE. **No Rev 2A
-> board has been fabricated or tested yet.** Expect bugs, expect to need an
-> oscilloscope, and **build at your own risk** — there are no tagged
-> releases until the hardware is verified to work end-to-end. PRs and
-> issues are welcome but be aware the design may still change in
-> incompatible ways before the first release.
+> 🚧 **Status: Work-in-progress — transmit verified on real Rev 2A hardware.**
+> A Rev 2A board has been fabricated and the **transmit path works end-to-end
+> on real hardware**: characters typed on the Amiga in c-kermit arrive
+> correctly on the PC over the FT240X's USB serial port. **Receive is not
+> working yet** — the RX interrupt path is currently gated off in the driver
+> pending verification of the doorbell/ACK line against the Rev 2A schematic.
+> There are no tagged releases until receive is verified and the link is
+> proven bidirectional, so **build at your own risk** and expect the design to
+> still change. PRs and issues welcome.
 
 ***
 Rev. 2A <br />
@@ -54,6 +55,11 @@ The driver is built in the style of [SimpleDevice](https://github.com/jbilander/
 for the Bartman `m68k-amiga-elf` (gcc 15.1) toolchain. The serial machinery
 (receive ring buffer, `CMD_READ` satisfied from buffer, `SDCMD_QUERY` count
 from a software counter) is ported from Iain Barclay's `8n1.device` 43.5.
+
+It targets **Kickstart 1.3** (and up): the sources include `<ks13_compat.h>`,
+which uses `#pragma GCC poison` to turn any accidental call to a KS 2.0+
+library function into a compile error, so the driver stays loadable on an
+unexpanded A500/A2000.
 
 ## Bill of Materials (Rev 2A)
 
@@ -597,29 +603,52 @@ The full word is `KPrintF`'d in `sdcmd_Query`, so if kermit reports
 ```
 and compare the logged status against what kermit expects.
 
-## Milestone 2 — real adapter (in progress) 🚧
+## Milestone 2 — real adapter 🚧
+
+### Transmit — working on hardware ✅
+
+The Amiga → PC direction is verified on a real Rev 2A board: typing in
+c-kermit (`cki196`) after `set line par2ser.device` / `connect` produces the
+characters in a PC terminal on the FT240X's USB serial port, with the driver's
+`KPrintF` trace confirming each `CMD_WRITE`.
+
+Bring-up steps:
 
 1. Build the CPLD firmware in ispLEVER Classic 2.1 — see `cpld/README.md`
    for details. The result is a `par2ser.jed` file.
 2. Program the FT240X's CBUS5 to CLK12MHz output (see above).
 3. Program the CPLD via ispVM System using a JTAG cable.
-4. Add Niklas's `spi.c`, `spi_low.asm`, `spi.h` to the Amiga driver
-   project (sources live in his
-   [amiga-par-to-spi-adapter](https://github.com/niklasekstrom/amiga-par-to-spi-adapter)
-   repo).
-5. In the `Makefile`, uncomment `-DPAR2SER_HW` and the
-   `spi.o spi_low.o` objects.
-6. Replace the stub bodies in `transport.c` (sketch in that file).
-   `spi_low.asm` is reused unchanged — the protocol is identical to the
-   AVR repo, and the D0–5/D6–7 data split is invisible on the Amiga
-   side.
+4. Build the driver with `make debug` in `amiga/` (the `Makefile` has
+   `-DPAR2SER_HW` and the adapter objects enabled), copy
+   `build-debug/par2ser.device` to `DEVS:`.
 
-`-DPAR2SER_HW` also compiles in the CIA-A FLAG receive interrupt server
-(`INTB_PORTS`): the adapter pulses its IRQ line (the ACK pin Niklas
-uses for card-present) when the FT240X RX FIFO is non-empty, the server
-drains it into the ring buffer and completes pending reads — the same
-event-driven model the OS expects, with clients `Wait()`ing on their
-reply ports.
+The low-level transport lives in `amiga/low-lib/` (`adapter.c`, `adapter.h`,
+`adapter_low.s`). It is derived from Niklas Ekström's parallel-adapter
+transport but renamed and reworked for Par2Ser: it is a byte-pipe, not SPI,
+so the chip-select / card-present / speed-switch machinery was removed, the
+fast-path assembly was ported from vasm to GNU-as syntax for the
+`m68k-amiga-elf` toolchain, and the SD-card init was replaced with a plain
+parallel-port grab. The WRITE1/READ1 command encoding and the SELECT/POUT/BUSY
+handshake are unchanged and are decoded bit-for-bit by the CPLD FSM.
+
+One hardware bug surfaced during TX bring-up and is fixed in the current RTL:
+the FT240X write strobe was firing one clock before the CPLD drove the data
+bus, so the chip latched a floating bus and bytes arrived as garbage. Driving
+the data across the WR pulse (setup + hold around the falling edge) fixed it;
+see `cpld/rtl/par2ser_fsm.v`.
+
+### Receive — next 🚧
+
+RX is **not working yet** and is gated off in the driver
+(`PAR2SER_RX_ENABLED` in `transport.c`, default 0), so opening the device
+installs no receive interrupt. The intended model, once enabled:
+`-DPAR2SER_HW` compiles in a CIA-A FLAG receive interrupt server
+(`INTB_PORTS`); the CPLD pulses ACK/FLAG when the FT240X RX FIFO is non-empty,
+the server drains it into the ring buffer and completes pending reads — the
+event-driven model the OS expects, with clients `Wait()`ing on their reply
+ports. Before enabling it, the doorbell bit and its polarity need confirming
+against the Rev 2A schematic (an early attempt with an unverified doorbell
+stormed the ports interrupt and wedged the machine at device-open).
 
 ## Credits
 
