@@ -19,7 +19,7 @@ Rev. 2A <br />
 ***
 
 A `serial.device`-compatible Amiga driver that bridges the parallel port to a
-USB FIFO (FT240X) via Niklas Ekström's 2E par-to-spi protocol, so unmodified
+USB FIFO (FT240X) via Niklas Ekström's 2E parallel-adapter protocol, so unmodified
 comms programs (c-kermit, NComm, …) can `set line par2ser.device`.
 
 The hardware side is a small board built around a Lattice **LC4064V-75TN48C**
