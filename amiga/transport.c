@@ -44,30 +44,20 @@ extern void KPrintF(CONST_STRPTR fmt, ...);
 #define ADAPTER_CHUNK 64
 
 /* --- RX bring-up gate -----------------------------------------------------
- * Controlled by PAR2SER_RX_ENABLED in transport.h (shared with par2ser.c so
- * the INTB_PORTS server is also not installed while RX is gated off). While
- * off, transport_poll_rx() is inert and no receive interrupt is hooked, so a
- * stuck/misread FLAG line cannot storm interrupts at open. TX is unaffected. */
+ * Controlled by PAR2SER_RX_ENABLED in transport.h (shared with par2ser.c,
+ * which gates the FLAG ICR vector install on the same switch). While off,
+ * transport_poll_rx() is inert and no receive interrupt is hooked. */
 #define RX_ENABLED PAR2SER_RX_ENABLED
 
-/* RX doorbell: par2ser.c owns CIA-A FLAG via an INTB_PORTS server. The CPLD
- * asserts ACK (drive_ack = S_IDLE & has_data) while the FT240X RX FIFO is
- * non-empty. We read that line to decide "is a byte waiting?".
- *
- * TODO(hw): confirm the exact bit + polarity against
- * Par2Ser_rev2a_schematic.pdf. ACK is nominally CIA-A PA0 and active-low on
- * the connector. If ACK is NOT readable as a CIA-A PRA bit on Rev 2A, this
- * must be driven from the FLAG interrupt latch instead (read once per
- * rx_server entry) rather than polled. */
-#if RX_ENABLED
-static volatile UBYTE *cia_a_pra = (volatile UBYTE *)0xbfe001;
-#define RXF_PENDING_MASK  0x01
-
-static BOOL rx_data_pending(void)
-{
-    return (*cia_a_pra & RXF_PENDING_MASK) ? FALSE : TRUE;  /* active-low */
-}
-#endif
+/* RX model: there is NO readable doorbell bit. The adapter's ACK (open-drain,
+ * DB25 pin 10) goes only to CIA-A /FLAG, an interrupt-only input -- confirmed
+ * against the KiCad netlist (CPLD pin 31 -> J1 pin 10, nothing else). The
+ * FLAG interrupt itself is the "data available" signal: par2ser.c registers
+ * on the FLAG ICR bit via cia.resource, and its handler calls
+ * transport_poll_rx() exactly once per FLAG. We read one byte
+ * unconditionally; if the FIFO holds more, the CPLD re-asserts ACK when its
+ * FSM returns to idle (drive_ack = S_IDLE & has_data), producing a fresh
+ * /FLAG falling edge and another handler call. Self-clocking, no loop. */
 
 BOOL transport_init(void)
 {
@@ -89,7 +79,18 @@ LONG transport_write(const UBYTE *buf, ULONG len)
         ULONG chunk = len - sent;
         if (chunk > ADAPTER_CHUNK)
             chunk = ADAPTER_CHUNK;
+        /* Mask interrupts around each chunk: transport_write runs in task
+         * context and the FLAG ICR handler issues READ1s from interrupt
+         * context -- a FLAG mid-WRITE1 would interleave two transactions on
+         * the same CIA lines and corrupt the FSM handshake. Masking lives
+         * HERE (task side), never inside the adapter transfer functions,
+         * because the ICR handler also calls those and Enable() inside an
+         * interrupt handler causes recursive re-entry (see adapter.c). Per
+         * chunk (<= 64 bytes, ~3 ms slow-path) rather than around the whole
+         * write, so RX latency stays bounded. */
+        Disable();
         adapter_write(buf + sent, chunk);   /* blocking 2E WRITE1 */
+        Enable();
         sent += chunk;
     }
     DBG((CONST_STRPTR)"transport_write(%ld) -> %ld\n", (LONG)len, (LONG)sent);
@@ -99,13 +100,27 @@ LONG transport_write(const UBYTE *buf, ULONG len)
 LONG transport_poll_rx(UBYTE *out)
 {
 #if RX_ENABLED
-    if (!rx_data_pending())
-        return 0;
+    /* Called from the FLAG ICR handler: FLAG fired, so the adapter had a
+     * byte when its FSM was idle. Read exactly one -- unconditionally,
+     * because /FLAG is not a readable level, only an edge-latched event. */
     adapter_read(out, 1);                   /* blocking 2E READ1, one byte */
     return 1;
 #else
     (void)out;
-    return 0;                               /* RX gated off until doorbell verified */
+    return 0;                               /* RX gated off */
+#endif
+}
+
+void transport_rx_prime(void)
+{
+#if RX_ENABLED
+    /* One harmless CTRL command (0xc4 = speed slow -> FT240X SIWU flush) to
+     * cycle the FSM out of and back into IDLE. If RX data was already
+     * waiting before the FLAG interrupt was enabled, ACK was held low with
+     * no edge for the CIA to latch; the IDLE re-entry re-asserts ACK and
+     * generates the missing falling edge. Empty FIFO -> no edge -> no-op. */
+    adapter_set_speed(ADAPTER_SPEED_SLOW);
+    DBG((CONST_STRPTR)"transport_rx_prime()\n");
 #endif
 }
 
@@ -134,6 +149,11 @@ LONG transport_poll_rx(UBYTE *out)
 {
     (void)out;
     return 0;                  /* no hardware -> never any RX data */
+}
+
+void transport_rx_prime(void)
+{
+    /* stub: nothing to prime */
 }
 
 #endif /* PAR2SER_HW */

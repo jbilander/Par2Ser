@@ -14,11 +14,19 @@
  *     interrupt install                  FT240X RX doorbell, owned by
  *                                        par2ser.c's INTB_PORTS rx_server.
  *
- * ADOPTED from the SDBox production code (jbilander/sdbox common/):
- *   - Disable()/Enable() bracketing around each transfer. Par2Ser RX is
- *     CIA-A FLAG interrupt driven, so without masking an rx_server could
- *     reenter the CIA lines mid-write. The fast path masks in adapter_low.s;
- *     the slow path masks here.
+ * INTERRUPT-CONTEXT CONTRACT: the slow transfer paths (adapter_read_slow /
+ * adapter_write_slow) contain NO Disable()/Enable() masking. Masking is the
+ * CALLER's job, and only task-context callers need it (transport_write does
+ * it). The FLAG ICR receive handler calls adapter_read() from interrupt
+ * context, where masking is unnecessary (task code cannot preempt) and
+ * Enable() is actively fatal: exec does not run interrupt handlers under
+ * Disable(), so a Disable()/Enable() pair inside a handler drops the SR
+ * interrupt mask to 0 on Enable() while the level-2 interrupt is still
+ * asserted -> immediate recursive re-entry -> stack overflow. (This crashed
+ * the machine on first use of the FLAG handler.) The FAST asm paths in
+ * adapter_low.s still mask internally and therefore MUST NOT be called from
+ * interrupt context as-is; adapter_set_speed likewise masks and is
+ * task-context only.
  *
  * adapter_init() only opens misc.resource, allocs the parallel port + bits,
  * and sets the CIA idle line state. adapter_shutdown() frees them again.
@@ -48,10 +56,34 @@
 #define CLK_MASK	(1 << CLK_BIT)
 #define ACT_MASK	(1 << ACT_BIT)
 
-/* Fast-path block transfer implemented in adapter_low.s (masks interrupts
- * itself and does its own SELECT/POUT framing). */
-extern void adapter_read_fast (UBYTE *buf       asm("a0"), ULONG size asm("d0"));
-extern void adapter_write_fast(const UBYTE *buf asm("a0"), ULONG size asm("d0"));
+/* Fast-path block transfer implemented in adapter_low.s: a0=buf, d0=size.
+ * That register convention is crossed ONLY here, via explicit register
+ * variables + inline jsr (the same proven mechanism as misc/cia_protos.h) --
+ * NOT via asm() parameter annotations, which this gcc ignores on the caller
+ * side (see adapter.h). The asm saves d2/a5-a6 itself and scratches d1/a1.
+ * NOTE: the fast paths Disable()/Enable() internally, so they are
+ * task-context only, and currently unused (current_speed stays SLOW). */
+static inline void call_read_fast(UBYTE *buf, ULONG size)
+{
+	register UBYTE *b asm("a0") = buf;
+	register ULONG  s asm("d0") = size;
+	__asm__ __volatile__ (
+		"jsr    adapter_read_fast"
+		: "+r" (b), "+r" (s)
+		:
+		: "d1", "a1", "cc", "memory");
+}
+
+static inline void call_write_fast(const UBYTE *buf, ULONG size)
+{
+	register const UBYTE *b asm("a0") = buf;
+	register ULONG        s asm("d0") = size;
+	__asm__ __volatile__ (
+		"jsr    adapter_write_fast"
+		: "+r" (b), "+r" (s)
+		:
+		: "d1", "a1", "cc", "memory");
+}
 
 static volatile UBYTE *cia_a_prb  = (volatile UBYTE *)0xbfe101;
 static volatile UBYTE *cia_a_ddrb = (volatile UBYTE *)0xbfe301;
@@ -113,11 +145,10 @@ static void wait_40_us(void)
 	(void)tmp;
 }
 
-static void adapter_write_slow(const UBYTE *buf asm("a0"), ULONG size asm("d0"))
+static void adapter_write_slow(const UBYTE *buf, ULONG size)
 {
 	UBYTE ctrl;
 
-	Disable();
 	ctrl = *cia_b_pra;
 
 	if (size <= 64) /* WRITE1: 00xxxxxx */
@@ -156,14 +187,12 @@ static void adapter_write_slow(const UBYTE *buf asm("a0"), ULONG size asm("d0"))
 
 	ctrl |= REQ_MASK;                   /* deassert SELECT -> FSM IDLE */
 	*cia_b_pra = ctrl;
-	Enable();
 }
 
-static void adapter_read_slow(UBYTE *buf asm("a0"), ULONG size asm("d0"))
+static void adapter_read_slow(UBYTE *buf, ULONG size)
 {
 	UBYTE ctrl;
 
-	Disable();
 	ctrl = *cia_b_pra;
 
 	if (size <= 64) /* READ1: 01xxxxxx */
@@ -206,21 +235,20 @@ static void adapter_read_slow(UBYTE *buf asm("a0"), ULONG size asm("d0"))
 	*cia_b_pra = ctrl;
 
 	*cia_a_ddrb = 0xff;                 /* drive the data bus again */
-	Enable();
 }
 
-void adapter_read(UBYTE *buf asm("a0"), ULONG size asm("d0"))
+void adapter_read(UBYTE *buf, ULONG size)
 {
 	if (current_speed == ADAPTER_SPEED_FAST)
-		adapter_read_fast(buf, size);
+		call_read_fast(buf, size);
 	else
 		adapter_read_slow(buf, size);
 }
 
-void adapter_write(const UBYTE *buf asm("a0"), ULONG size asm("d0"))
+void adapter_write(const UBYTE *buf, ULONG size)
 {
 	if (current_speed == ADAPTER_SPEED_FAST)
-		adapter_write_fast(buf, size);
+		call_write_fast(buf, size);
 	else
 		adapter_write_slow(buf, size);
 }

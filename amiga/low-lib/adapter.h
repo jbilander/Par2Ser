@@ -49,9 +49,17 @@ void adapter_set_speed(long speed);
 
 /* Blocking block transfer. 1 <= size <= 64 for a single WRITE1/READ1 command
  * on the current CPLD (the WRITE2/READ2 >64 path is not implemented in the
- * Par2Ser FSM -- callers must chunk at 64). Register-pinned (a0=buf, d0=size)
- * to match the fast-path assembly in adapter_low.s. */
-void adapter_read (UBYTE *buf       asm("a0"), ULONG size asm("d0"));
-void adapter_write(const UBYTE *buf asm("a0"), ULONG size asm("d0"));
+ * Par2Ser FSM -- callers must chunk at 64).
+ *
+ * PLAIN C calling convention -- deliberately NOT register-pinned. gcc honors
+ * `asm("reg")` parameter annotations on DEFINITIONS (the callee reads the
+ * registers) but silently ignores them on PROTOTYPES (callers use the stack
+ * ABI), so cross-file calls passed garbage in a0/d0: every READ1 scribbled
+ * memory through a junk pointer (black-screen crash), and TX only looked
+ * right by register coincidence at the transport_write call site. The only
+ * register-convention boundary is the adapter_low.s fast paths, crossed via
+ * explicit register variables + inline jsr inside adapter.c. */
+void adapter_read (UBYTE *buf, ULONG size);
+void adapter_write(const UBYTE *buf, ULONG size);
 
 #endif /* ADAPTER_H */
