@@ -103,16 +103,21 @@ module par2ser_fsm (
             state[S_WRITE_FT]     <= (state[S_WRITE_LATCH]  &  can_write);
                                     // WRITE_FT always transitions out in one cycle, no hold term.
 
-            state[S_READ_FETCH]   <= (state[S_DECODE]       &  is_read)
-                                   | (state[S_READ_PRESENT] & ~req_deassert &  pout_edge & ~bc_zero)
+            // READ path, reworked for correct handshake semantics (see note at
+            // the data-path section below). PRESENT = waiting for the Amiga's
+            // POUT edge; FETCH = one FT240X read per edge. The byte counter is
+            // NOT used on the read side: the Amiga toggles exactly `size`
+            // times and then deasserts SELECT, so the edge count IS the byte
+            // count and bc terms here would be redundant product terms.
+            state[S_READ_FETCH]   <= (state[S_READ_PRESENT] & ~req_deassert &  pout_edge)
                                    | (state[S_READ_FETCH]   & ~req_deassert & ~has_data);
 
-            state[S_READ_PRESENT] <= (state[S_READ_FETCH]   & ~req_deassert &  has_data)
+            state[S_READ_PRESENT] <= (state[S_DECODE]       &  is_read)
+                                   | (state[S_READ_FETCH]   & ~req_deassert &  has_data)
                                    | (state[S_READ_PRESENT] & ~req_deassert & ~pout_edge);
 
             state[S_DRAIN]        <= (state[S_DECODE]       &  is_drain)
                                    | (state[S_WRITE_FT]     &  bc_zero)
-                                   | (state[S_READ_PRESENT] & ~req_deassert &  pout_edge &  bc_zero)
                                    | (state[S_DRAIN]        & ~req_deassert);
 
             state[S_CTRL]         <= (state[S_DECODE]       &  is_ctrl)
@@ -124,8 +129,8 @@ module par2ser_fsm (
     //  Byte counter -- single-condition enables, same as binary version.
     // -------------------------------------------------------------------------
     wire count_load = state[S_DECODE] & ~amiga_d_in[7];
-    wire count_dec  = (state[S_WRITE_FT]     & ~bc_zero)
-                    | (state[S_READ_PRESENT] & pout_edge & ~req_deassert & ~bc_zero);
+    wire count_dec  = (state[S_WRITE_FT]     & ~bc_zero);   // write side only;
+                      // the read side needs no counter (edges = bytes).
 
     always @(posedge clk) begin
         if (reset)           byte_count <= 7'd0;
@@ -138,9 +143,13 @@ module par2ser_fsm (
     // -------------------------------------------------------------------------
     always @(posedge clk) ft_d_out <= amiga_d_in;
 
-    reg rd_capture;
-    always @(posedge clk) rd_capture <= ft_rd_pulse;
-    always @(posedge clk) if (rd_capture) amiga_d_out <= ft_d_in;
+    // Capture the FT240X byte at the clock edge that ENDS the RD# pulse --
+    // while RD# is still low and the FT is still driving its bus. RD# is low
+    // for one 83ns cycle; FT240X data is valid ~50ns after RD# falls, giving
+    // ~30ns of setup at the capture edge. The previous rd_capture register
+    // sampled one cycle AFTER RD# released, when the FT had already let go
+    // of the bus (hold <= 14ns) -- reading a released bus.
+    always @(posedge clk) if (ft_rd_pulse) amiga_d_out <= ft_d_in;
 
     // -------------------------------------------------------------------------
     //  Output registers -- now driven from single-wire state[N] signals.
@@ -155,7 +164,20 @@ module par2ser_fsm (
             drive_ack     <= 1'b0;
         end else begin
             drive_busy    <= ~state[S_IDLE];
-            drive_amiga_d <=  state[S_READ_PRESENT];
+            // Drive the Amiga data bus only from the FIRST completed fetch
+            // onward, holding through the rest of the read, and release on
+            // SELECT deassert. Never drive before the Amiga's first POUT
+            // edge: the Amiga is still driving the bus (DDRB=0xff) for
+            // several microseconds after asserting SELECT, and the old
+            // `drive on READ_PRESENT` asserted ~400ns in -- microseconds of
+            // 8-line bus contention against the CIA on every READ1 (the
+            // prime crash suspect: a glitched CIA-A can flip /OVL). The
+            // first POUT toggle is the Amiga's guarantee that it has
+            // tristated (DDRB=0 always precedes the read loop).
+            drive_amiga_d <= ~req_deassert &
+                             ( (state[S_READ_FETCH] & has_data)
+                             | (drive_amiga_d & (state[S_READ_FETCH]
+                                               | state[S_READ_PRESENT])) );
             // Drive the FT data bus one cycle EARLIER (S_WRITE_LATCH) and hold it
             // through S_WRITE_FT, so the bus is valid before, during, and after the
             // ft_wr_pulse (which fires in the S_WRITE_FT cycle). The FT240X latches on
