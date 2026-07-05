@@ -1,13 +1,13 @@
 # Amiga Par2Ser device
 
-> 🚧 **Status: Work-in-progress — transmit verified on real Rev 2A hardware.**
-> A Rev 2A board has been fabricated and the **transmit path works end-to-end
-> on real hardware**: characters typed on the Amiga in c-kermit arrive
-> correctly on the PC over the FT240X's USB serial port. **Receive is not
-> working yet** — the RX interrupt path is currently gated off in the driver
-> pending verification of the doorbell/ACK line against the Rev 2A schematic.
-> There are no tagged releases until receive is verified and the link is
-> proven bidirectional, so **build at your own risk** and expect the design to
+> 🚧 **Status: Work-in-progress — bidirectional link verified on real Rev 2A
+> hardware.** Both directions work end-to-end: characters typed on the Amiga
+> in c-kermit appear on the PC over the FT240X's USB serial port, and
+> characters typed on the PC appear in c-kermit on the Amiga. **Kermit file
+> transfers do not succeed yet** — interactive traffic is solid, but protocol
+> transfers (`send`/`rdir`) currently fail with retries; packet-burst
+> handling is the next debugging target. There are no tagged releases until
+> file transfer works, so **build at your own risk** and expect the design to
 > still change. PRs and issues welcome.
 
 ***
@@ -603,7 +603,7 @@ The full word is `KPrintF`'d in `sdcmd_Query`, so if kermit reports
 ```
 and compare the logged status against what kermit expects.
 
-## Milestone 2 — real adapter 🚧
+## Milestone 2 — real adapter ✅ (interactive traffic both ways)
 
 ### Transmit — working on hardware ✅
 
@@ -637,18 +637,53 @@ bus, so the chip latched a floating bus and bytes arrived as garbage. Driving
 the data across the WR pulse (setup + hold around the falling edge) fixed it;
 see `cpld/rtl/par2ser_fsm.v`.
 
-### Receive — next 🚧
+### Receive — working on hardware ✅
 
-RX is **not working yet** and is gated off in the driver
-(`PAR2SER_RX_ENABLED` in `transport.c`, default 0), so opening the device
-installs no receive interrupt. The intended model, once enabled:
-`-DPAR2SER_HW` compiles in a CIA-A FLAG receive interrupt server
-(`INTB_PORTS`); the CPLD pulses ACK/FLAG when the FT240X RX FIFO is non-empty,
-the server drains it into the ring buffer and completes pending reads — the
-event-driven model the OS expects, with clients `Wait()`ing on their reply
-ports. Before enabling it, the doorbell bit and its polarity need confirming
-against the Rev 2A schematic (an early attempt with an unverified doorbell
-stormed the ports interrupt and wedged the machine at device-open).
+The PC → Amiga direction also works: characters typed in a PC terminal appear
+in c-kermit on the Amiga (`PAR2SER_RX_ENABLED` is 1 in `transport.h`).
+
+RX design: the adapter's ACK line (open-drain, DB25 pin 10) connects only to
+**CIA-A /FLAG**, an interrupt-only CIA input — confirmed against the KiCad
+netlist — so there is no readable doorbell level; the FLAG interrupt itself is
+the data-available signal. The driver registers on the FLAG ICR bit via
+**cia.resource** (`AddICRVector`, see `amiga/low-lib/cia_protos.h`) rather
+than an `INTB_PORTS` server, so only genuine FLAG events are dispatched and
+the shared ICR is owned correctly. The handler reads exactly **one byte per
+FLAG**: the CPLD's IDLE-gated ACK re-asserts after each READ1 completes if
+the FIFO still holds data, producing a fresh /FLAG edge per remaining byte —
+the drain is hardware-self-clocking, no loop in the interrupt. A one-shot
+`transport_rx_prime()` at device-open regenerates the doorbell edge for any
+data that arrived before the interrupt was enabled (the CIA latches edges,
+not levels).
+
+Getting RX to work surfaced and fixed several deep bugs, documented in the
+commit history — most notably a **gcc calling-convention trap**: `asm("reg")`
+parameter annotations are honored on function *definitions* but silently
+ignored on *prototypes*, so cross-file calls into the adapter transfer
+functions passed garbage in a0/d0 (every READ1 scribbled memory through a
+junk pointer; TX had only appeared correct by register coincidence). The
+adapter API now uses the plain C convention, with explicit register variables
++ inline `jsr` shims only at the true `adapter_low.s` asm boundary. On the
+CPLD side, the READ handshake was reworked: never drive the Amiga bus before
+its first POUT edge (eliminating microseconds of bus contention against the
+CIA on every read), present one byte per edge and hold it across the CIA's
+~1.4 µs read, and capture FT240X data while RD# is still low. 58/64
+macrocells, timing met with 72 ns slack.
+
+### Known issues / next 🚧
+
+- **Kermit file transfers fail** (`send`/`rdir` → "?Too many retries"):
+  interactive byte traffic is solid both ways, but protocol packet bursts
+  get corrupted or clipped — packets flow (all-Error packet exchanges are
+  observed) but never complete. Prime suspects: RX overrun during
+  per-byte-interrupt bursts, or larger CMD_READ/CMD_WRITE patterns that
+  single keystrokes never exercised. This is the current debugging target.
+- **TX LED never visibly lights**: `led_tx` follows `drive_ft_d`, which is
+  high ~166 ns per byte — too short to see. The RX and activity LEDs blink
+  only briefly for the same reason. A pulse-stretcher counter in the CPLD
+  (~50 ms per event) would fix all three; there is macrocell headroom now.
+- Non-ASCII characters (å/ä/ö) may display wrong on the PC — check the
+  Windows console codepage (the link itself is 8-bit clean).
 
 ## Credits
 
