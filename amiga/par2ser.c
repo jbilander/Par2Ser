@@ -1,6 +1,6 @@
 /*
  * par2ser.device -- serial.device-compatible bridge over the Amiga parallel
- *                   port (Niklas Ekström's 2E par-to-spi protocol -> FT240X).
+ *                   port (Niklas Ekström's 2E parallel-adapter protocol -> FT240X).
  *
  * Structure follows jbilander/SimpleDevice (Bartman m68k-amiga-elf toolchain):
  *   - _start returns -1, inline-asm romtag, RTF_AUTOINIT
@@ -8,15 +8,19 @@
  *   - KPrintF debug via debug.c (RawDoFmt + RawPutChar)
  *
  * Serial machinery ported from Iain Barclay's 8n1.device (43.5): a RAM receive
- * ring buffer fed by an interrupt, CMD_READ satisfied from that buffer, and
- * SDCMD_QUERY answering "bytes available" from a software counter. The streaming
- * semantics live here in RAM; the hardware only ever needs to say "byte ready".
+ * ring buffer fed by an interrupt, CMD_READ satisfied from that buffer with
+ * serial byte-stream semantics (a read completes on whatever input is
+ * available, not only when io_Length is filled), and SDCMD_QUERY answering
+ * "bytes available" from a software counter. The streaming semantics live here
+ * in RAM; the hardware only ever needs to say "byte ready".
  *
- * MILESTONE 1 (this file): load, open, and trace the full command set so you can
- * try `set line par2ser.device` in kermit and watch the negotiation over the
- * serial debug console. CMD_WRITE/READ go through a transport layer that is
- * currently STUBBED (see transport.c). Define PAR2SER_HW to compile in the
- * CIA-A FLAG receive interrupt (cia.resource ICR vector) that drives the real adapter.
+ * Without PAR2SER_HW the transport is stubbed (transport.c) so the driver can
+ * be loaded and its command flow traced in WinUAE with no hardware. With
+ * PAR2SER_HW it drives the real adapter: chunked WRITE1 commands for transmit,
+ * and a CIA-A FLAG receive interrupt (cia.resource ICR vector, one byte per
+ * FLAG) for receive. Bidirectional interactive traffic and kermit file
+ * transfers both work on real Rev 2A hardware; throughput optimization is the
+ * remaining work (see README).
  */
 
 #include <proto/exec.h>
@@ -126,6 +130,18 @@ static UBYTE        *rb_end;        /* one past end (for wrap)             */
 static volatile LONG rb_count;      /* bytes currently buffered            */
 static volatile UBYTE rx_overrun;   /* set if ring overflowed              */
 
+#if DEBUG
+/* Diagnostic counters (dumped from cmd_query, task context, so the FLAG
+ * ISR stays fast -- per-byte KPrintF at 9600 baud would perturb the very
+ * timing we are measuring). Track burst behavior for the kermit transfer
+ * hunt: total bytes fed, times the ring overflowed, high-water ring fill,
+ * and reads completed by the ISR. */
+static volatile ULONG dbg_rx_bytes;
+static volatile ULONG dbg_rx_overruns;
+static volatile ULONG dbg_rb_hiwater;
+static volatile ULONG dbg_reads_done;
+#endif
+
 static struct IOExtSer *active_read;/* the one read being filled by the ISR*/
 static struct List   read_q;        /* further reads waiting their turn    */
 
@@ -200,6 +216,18 @@ static BOOL buffer_alloc(ULONG len)
 /* Copy as much as possible from the ring into a read request's buffer.
  * Returns TRUE when the request is fully satisfied (io_Actual == io_Length).
  * Caller must hold Disable(). */
+/* Copy available ring bytes into the request. Serial/byte-stream semantics
+ * (per the Amiga device convention): a read is satisfied as soon as ANY
+ * input is available -- it need not fill io_Length. io_Length is a maximum
+ * (buffer size), not a required count. Returns TRUE (read complete) if at
+ * least one byte has now been delivered, or the buffer is full; FALSE only
+ * while nothing at all has been copied yet (ring was empty -> keep pending
+ * until the ISR feeds the first byte). This is what kermit and other stream
+ * readers expect: post a big buffer, get back whatever has arrived.
+ *
+ * (The previous "complete only when io_Actual >= io_Length" rule made every
+ * kermit packet read hang until its 9064-byte buffer filled -- it never did,
+ * so kermit timed out and retried every packet: "Too many retries".) */
 static BOOL read_copy(struct IOExtSer *io)
 {
     UBYTE *dst = (UBYTE *)io->IOSer.io_Data + io->IOSer.io_Actual;
@@ -213,7 +241,8 @@ static BOOL read_copy(struct IOExtSer *io)
         io->IOSer.io_Actual++;
         want--;
     }
-    return (io->IOSer.io_Actual >= io->IOSer.io_Length);
+    /* Complete once we have delivered anything at all, or filled the buffer. */
+    return (io->IOSer.io_Actual > 0);
 }
 
 /* ------------------------------------------------------------------ *
@@ -225,12 +254,20 @@ static void rx_feed(UBYTE c)
 {
     if (rb_count >= (LONG)rbuf_len) {   /* full -> drop + flag overrun */
         rx_overrun = 1;
+#if DEBUG
+        dbg_rx_overruns++;
+#endif
         return;
     }
     *rb_in++ = c;
     if (rb_in == rb_end)
         rb_in = rbuf;
     rb_count++;
+#if DEBUG
+    dbg_rx_bytes++;
+    if ((ULONG)rb_count > dbg_rb_hiwater)
+        dbg_rb_hiwater = (ULONG)rb_count;
+#endif
 }
 
 /* Try to complete the active read (and promote the next queued one). */
@@ -247,6 +284,9 @@ static void service_reads(void)
             struct IOExtSer *done = active_read;
             active_read = NULL;
             done->IOSer.io_Error = 0;
+#if DEBUG
+            dbg_reads_done++;
+#endif
             ReplyMsg(&done->IOSer.io_Message);
             continue;            /* see if the next queued read can run too */
         }
@@ -396,6 +436,11 @@ static void cmd_query(struct IOExtSer *io)
     Enable();
     DBG("  SDCMD_QUERY -> status=$%lx actual=%ld\n",
         (ULONG)status, io->IOSer.io_Actual);
+#if DEBUG
+    DBG("    [rx bytes=%ld ovr=%ld hi=%ld reads=%ld rbcount=%ld]\n",
+        dbg_rx_bytes, dbg_rx_overruns, dbg_rb_hiwater,
+        dbg_reads_done, (ULONG)rb_count);
+#endif
 }
 
 static void cmd_setparams(struct IOExtSer *io)
