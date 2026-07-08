@@ -50,7 +50,7 @@
 extern void KPrintF(CONST_STRPTR fmt, ...);
 #define DBG(...) KPrintF((CONST_STRPTR)__VA_ARGS__)
 #else
-#define DBG(...)
+#define DBG(...) do { } while (0)
 #endif
 
 #define STR(s) #s
