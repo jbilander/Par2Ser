@@ -12,7 +12,8 @@
  *                                        by the FSM as is_ctrl (SIWU flush).
  *   - the CIA-A FLAG (AddICRVector)     : on Par2Ser the FLAG line is the
  *     interrupt install                  FT240X RX doorbell, owned by
- *                                        par2ser.c's INTB_PORTS rx_server.
+ *                                        par2ser.c (which installs its own
+ *                                        FLAG ICR vector via cia.resource).
  *
  * INTERRUPT-CONTEXT CONTRACT: the slow transfer paths (adapter_read_slow /
  * adapter_write_slow) contain NO Disable()/Enable() masking. Masking is the
@@ -132,15 +133,46 @@ void adapter_set_speed(long speed)
 	current_speed = speed;
 }
 
-/* Inter-byte settling delay for the slow (bit-bang) path: 32 reads of a CIA
- * register. Each CIA access is paced by the ~1.4 us E-clock cycle, so this is
- * ~45 us. It gives the adapter time to accept/present a byte between clocks;
- * the original derived ~32 us from the AVR's 250 kHz SPI byte time, which no
- * longer applies on Par2Ser -- here it is just a settling margin. */
-static void wait_40_us(void)
+/* Inter-byte pacing for the slow (bit-bang) write path. Each iteration is one
+ * CIA-register read (~1.4us E-clock cycle), so the delay is ~TX_BYTE_DELAY *
+ * 1.4us. This is the ONLY flow control between consecutive bytes on the write
+ * side -- the data loop toggles CLK per byte with no per-byte BUSY handshake,
+ * so this delay must be long enough for the CPLD FSM to consume one byte
+ * (WRITE_WAIT -> WRITE_LATCH -> WRITE_FT -> WRITE_WAIT) before the next POUT
+ * edge, AND for the FT240X to accept the write.
+ *
+ * OPTIMIZATION KNOB: the original value (32 -> ~45us) came from Niklas's SD
+ * card needing ~32us/byte at 250kHz SPI -- irrelevant here. The FSM per-byte
+ * cycle is sub-microsecond at 12MHz and two CIA writes are already ~1.4us
+ * apart, so this is almost certainly far larger than needed. Reduce and test
+ * for dropped/corrupted bytes (kermit Error Count). If 0 works reliably the
+ * delay can be removed entirely; if not, it finds the real margin. */
+#ifndef TX_BYTE_DELAY
+#define TX_BYTE_DELAY 4      /* was 32; sweep this down toward 0 */
+#endif
+
+static void wait_tx_byte(void)
 {
 	UBYTE tmp;
-	for (int i = 0; i < 32; i++)
+	for (int i = 0; i < TX_BYTE_DELAY; i++)
+		tmp = *cia_b_pra;
+	(void)tmp;
+}
+
+/* Inter-byte pacing for the slow READ path: gives the FT240X/CPLD time to
+ * present a byte on the bus before the Amiga clocks and reads it. Kept at the
+ * original value for now -- RX already runs faster than TX and in the current
+ * driver this loop only ever runs with size==1 (one byte per FLAG), so it is
+ * NOT the RX bottleneck. Left as a separate knob so TX tuning cannot perturb
+ * the working receive path; revisit when RX burst-drain is implemented. */
+#ifndef RX_BYTE_DELAY
+#define RX_BYTE_DELAY 32
+#endif
+
+static void wait_rx_byte(void)
+{
+	UBYTE tmp;
+	for (int i = 0; i < RX_BYTE_DELAY; i++)
 		tmp = *cia_b_pra;
 	(void)tmp;
 }
@@ -182,7 +214,7 @@ static void adapter_write_slow(const UBYTE *buf, ULONG size)
 		ctrl ^= CLK_MASK;               /* clock this byte (POUT edge) */
 		*cia_b_pra = ctrl;
 
-		wait_40_us();
+		wait_tx_byte();
 	}
 
 	ctrl |= REQ_MASK;                   /* deassert SELECT -> FSM IDLE */
@@ -223,7 +255,7 @@ static void adapter_read_slow(UBYTE *buf, ULONG size)
 
 	for (ULONG i = 0; i < size; i++)
 	{
-		wait_40_us();
+		wait_rx_byte();
 
 		ctrl ^= CLK_MASK;               /* clock a byte in (POUT edge) */
 		*cia_b_pra = ctrl;
