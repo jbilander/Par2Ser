@@ -1,14 +1,16 @@
 # Amiga Par2Ser device
 
-> 🚧 **Status: Work-in-progress — bidirectional link verified on real Rev 2A
-> hardware.** Both directions work end-to-end: characters typed on the Amiga
-> in c-kermit appear on the PC over the FT240X's USB serial port, and
-> characters typed on the PC appear in c-kermit on the Amiga. **Kermit file
-> transfers do not succeed yet** — interactive traffic is solid, but protocol
-> transfers (`send`/`rdir`) currently fail with retries; packet-burst
-> handling is the next debugging target. There are no tagged releases until
-> file transfer works, so **build at your own risk** and expect the design to
-> still change. PRs and issues welcome.
+> 🚧 **Status: Proof of concept — working, not yet fast.** The link is
+> verified end-to-end on real Rev 2A hardware in both directions: interactive
+> terminal traffic and **kermit file transfers** both work (a 512 KB ROM image
+> and a 906 KB binary have been transferred with essentially zero packet
+> errors). Current throughput is roughly **3400 CPS transmit / 1400 CPS
+> receive** (release build). That is not yet a win over the built-in serial
+> port — a stock A500 runs kermit at 38400 baud (~3800 CPS) via `8n1.device` —
+> so **throughput optimization is the active work**; the whole point of going
+> through the parallel port is to beat that comfortably. There are no tagged
+> releases until it does, so **build at your own risk** and expect the design
+> to still change. PRs and issues welcome.
 
 ***
 Rev. 2A <br />
@@ -603,7 +605,7 @@ The full word is `KPrintF`'d in `sdcmd_Query`, so if kermit reports
 ```
 and compare the logged status against what kermit expects.
 
-## Milestone 2 — real adapter ✅ (interactive traffic both ways)
+## Milestone 2 — real adapter ✅ (bidirectional, file transfers working)
 
 ### Transmit — working on hardware ✅
 
@@ -640,7 +642,20 @@ see `cpld/rtl/par2ser_fsm.v`.
 ### Receive — working on hardware ✅
 
 The PC → Amiga direction also works: characters typed in a PC terminal appear
-in c-kermit on the Amiga (`PAR2SER_RX_ENABLED` is 1 in `transport.h`).
+in c-kermit on the Amiga, and kermit file transfers complete in both
+directions (`PAR2SER_RX_ENABLED` is 1 in `transport.h`).
+
+One further bug had to be fixed before file transfers would run, and it was
+pure protocol logic rather than hardware: `read_copy()` completed a `CMD_READ`
+only once `io_Actual >= io_Length`, but kermit posts reads with a large buffer
+(e.g. 9064 bytes) as a *maximum*, expecting back whatever has arrived. Every
+packet's bytes landed in the ring correctly — zero overruns, exact counts —
+and then the read sat pending forever waiting to fill the buffer, so kermit
+timed out and retried every packet ("?Too many retries"). The Amiga
+byte-stream convention is the opposite (console.device: *"if there is some
+input, but not as much as can fill io_Length, the request will be satisfied
+with the input currently available"*); completing the read as soon as any byte
+has been delivered made transfers work immediately.
 
 RX design: the adapter's ACK line (open-drain, DB25 pin 10) connects only to
 **CIA-A /FLAG**, an interrupt-only CIA input — confirmed against the KiCad
@@ -670,14 +685,53 @@ CIA on every read), present one byte per edge and hold it across the CIA's
 ~1.4 µs read, and capture FT240X data while RD# is still low. 58/64
 macrocells, timing met with 72 ns slack.
 
-### Known issues / next 🚧
+### Throughput — the active work 🚧
 
-- **Kermit file transfers fail** (`send`/`rdir` → "?Too many retries"):
-  interactive byte traffic is solid both ways, but protocol packet bursts
-  get corrupted or clipped — packets flow (all-Error packet exchanges are
-  observed) but never complete. Prime suspects: RX overrun during
-  per-byte-interrupt bursts, or larger CMD_READ/CMD_WRITE patterns that
-  single keystrokes never exercised. This is the current debugging target.
+File transfers work; making them *fast* is what remains. Measured with
+kermit on a real Rev 2A board, release builds:
+
+| direction | CPS | notes |
+| --------- | --- | ----- |
+| TX (Amiga `send`) | ~3400 | after cutting the per-byte delay |
+| RX (Amiga `get`)  | ~1400 | one FLAG interrupt per byte |
+
+Target: comfortably past 38400 baud equivalent (~3800 CPS), since that is what
+`8n1.device` already achieves on the built-in serial port.
+
+What has been done and what is left:
+
+- **Never benchmark a DEBUG build.** `KPrintF` goes out the real serial port
+  at 9600 baud *synchronously*, ~1 ms per character, from inside the driver
+  (and the receive ISR). A debug build measured ~570 CPS **with thousands of
+  kermit retransmissions** — the debug spew was slow enough to time kermit out
+  mid-packet. The same code in a release build ran ~3× faster with zero
+  errors. Always `make release` for anything timing-related.
+- **Per-byte TX delay (done).** `adapter_write_slow()` inherited a ~45 µs
+  busy-wait per byte from Niklas's SD-card timing (~32 µs/byte at 250 kHz
+  SPI) — irrelevant to this hardware. Cutting it to ~5.6 µs
+  (`TX_BYTE_DELAY`, a tunable in `low-lib/adapter.c`) took TX from ~1900 to
+  ~3400 CPS with no increase in errors. The floor has not been found yet;
+  the knob can still be swept toward zero.
+- **RX per-byte interrupt overhead (next, and the bigger prize).** Receive
+  takes a full CIA-A FLAG interrupt per byte: dispatch, handler, one READ1
+  transaction, `service_reads`, `ReplyMsg` — all for one byte. That overhead,
+  not the inter-byte delay, is the RX ceiling. The fix is burst-draining
+  several bytes per interrupt, which needs a way to know when to stop — i.e.
+  a CPLD status command exposing "FIFO not empty" (there is macrocell
+  headroom now: 58/64).
+- **Fast-path assembly (unused).** `adapter_low.s` is built and linked but
+  never called — `current_speed` stays SLOW, so the C bit-bang path runs.
+  The asm clocks bytes with no inter-byte delay at all. Note it masks
+  interrupts internally, so it is task-context only as written and would need
+  rework before the receive ISR could use it.
+- **Block streaming (later).** The >64-byte WRITE2/READ2 commands are not
+  implemented in the current LC4064V FSM (D7=1 routes to `S_DRAIN`), so every
+  transfer is chunked at 64 bytes. A whole kermit packet as one framed block
+  would cut per-transaction overhead considerably — this is where a larger
+  CPLD or a bespoke, parallel-tailored protocol would earn its keep.
+
+### Other known issues
+
 - **TX LED never visibly lights**: `led_tx` follows `drive_ft_d`, which is
   high ~166 ns per byte — too short to see. The RX and activity LEDs blink
   only briefly for the same reason. A pulse-stretcher counter in the CPLD
